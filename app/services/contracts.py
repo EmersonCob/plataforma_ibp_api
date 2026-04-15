@@ -175,6 +175,23 @@ class ContractService:
         db.commit()
         return self.get(db, contract.id)
 
+    def delete(self, db: Session, contract_id: str, user: User) -> None:
+        contract = self.get(db, contract_id)
+        if contract.status == ContractStatus.assinado or contract.signature:
+            raise AppError("Contrato assinado não pode ser apagado.", 409, "signed_contract_locked")
+
+        audit_service.log(
+            db,
+            entity_type="contract",
+            entity_id=contract.id,
+            action="contract_deleted",
+            actor_type=ActorType.admin,
+            actor_id=user.id,
+            metadata={"title": contract.title, "status": contract.status.value},
+        )
+        db.delete(contract)
+        db.commit()
+
     def versions(self, db: Session, contract_id: str) -> list[ContractVersion]:
         self.get(db, contract_id)
         return list(

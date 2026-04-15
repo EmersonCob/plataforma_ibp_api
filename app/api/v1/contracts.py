@@ -93,6 +93,11 @@ def expire_contract(contract_id: str, db: Session = Depends(get_db), user: User 
     return contract_service.expire(db, contract_id, user)
 
 
+@router.delete("/{contract_id}", status_code=204)
+def delete_contract(contract_id: str, db: Session = Depends(get_db), user: User = Depends(require_manager)) -> None:
+    contract_service.delete(db, contract_id, user)
+
+
 @router.get("/{contract_id}/versions", response_model=list[ContractVersionRead])
 def list_versions(contract_id: str, db: Session = Depends(get_db), _: User = Depends(require_user)) -> list:
     return contract_service.versions(db, contract_id)
