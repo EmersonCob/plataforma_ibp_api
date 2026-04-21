@@ -22,3 +22,16 @@ class MeResponse(BaseModel):
     email: EmailStr
     role: str
     role_level: int
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=32, max_length=256)
+    password: str = Field(min_length=12, max_length=128)
+
+
+class MessageResponse(BaseModel):
+    message: str

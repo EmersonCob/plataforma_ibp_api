@@ -33,4 +33,4 @@ def rate_limiter(limit: str) -> Callable:
 
 login_rate_limit = rate_limiter(settings.login_rate_limit)
 public_rate_limit = rate_limiter(settings.public_rate_limit)
-
+password_reset_rate_limit = rate_limiter(settings.password_reset_rate_limit)

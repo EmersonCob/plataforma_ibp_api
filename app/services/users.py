@@ -8,6 +8,7 @@ from app.models.enums import ActorType, UserRole
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.services.audit import audit_service
+from app.services.email import email_service
 
 
 class UserService:
@@ -58,6 +59,7 @@ class UserService:
         )
         db.commit()
         db.refresh(user)
+        email_service.send_welcome_email(user, payload.password)
         return user
 
     def update(self, db: Session, user_id: str, payload: UserUpdate, actor: User) -> User:

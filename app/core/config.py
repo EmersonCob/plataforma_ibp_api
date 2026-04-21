@@ -37,13 +37,35 @@ class Settings(BaseSettings):
     image_jpeg_quality: int = 86
     login_rate_limit: str = "8/minute"
     public_rate_limit: str = "30/minute"
+    password_reset_rate_limit: str = "5/minute"
+    password_reset_token_expire_minutes: int = 60
+    frontend_app_url: str = "https://ibp-web-qa.jbtechinnova.com"
+
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: EmailStr | None = None
+    smtp_from_name: str = "IBP Saúde Mental"
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: int = 10
 
     initial_admin_name: str | None = None
     initial_admin_email: EmailStr | None = None
     initial_admin_password: str | None = None
     bootstrap_default_template: bool = True
 
-    @field_validator("initial_admin_name", "initial_admin_email", "initial_admin_password", mode="before")
+    @field_validator(
+        "initial_admin_name",
+        "initial_admin_email",
+        "initial_admin_password",
+        "smtp_host",
+        "smtp_username",
+        "smtp_password",
+        "smtp_from_email",
+        mode="before",
+    )
     @classmethod
     def empty_to_none(cls, value: Any) -> Any:
         if isinstance(value, str) and not value.strip():
@@ -78,6 +100,20 @@ class Settings(BaseSettings):
     def validate_image_jpeg_quality(cls, value: int) -> int:
         if not 60 <= value <= 95:
             raise ValueError("IMAGE_JPEG_QUALITY deve estar entre 60 e 95")
+        return value
+
+    @field_validator("password_reset_token_expire_minutes")
+    @classmethod
+    def validate_password_reset_token_expire_minutes(cls, value: int) -> int:
+        if not 10 <= value <= 1440:
+            raise ValueError("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES deve estar entre 10 e 1440")
+        return value
+
+    @field_validator("smtp_port")
+    @classmethod
+    def validate_smtp_port(cls, value: int) -> int:
+        if not 1 <= value <= 65535:
+            raise ValueError("SMTP_PORT deve estar entre 1 e 65535")
         return value
 
     @field_validator("s3_endpoint", mode="before")
