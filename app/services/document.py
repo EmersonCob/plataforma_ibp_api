@@ -75,13 +75,13 @@ class DocumentService:
         styles = self._styles()
 
         story = [
-            Paragraph("IBP - Instituto Brasileiro de Psiquiatria", styles["brand"]),
-            Paragraph(html.escape(contract.title), styles["title"]),
-            Paragraph("Documento final assinado digitalmente", styles["subtitle"]),
+            Paragraph("IBP - Instituto Brasileiro de Psiquiatria", styles["contractBrand"]),
+            Paragraph(html.escape(contract.title), styles["contractTitle"]),
+            Paragraph("Documento final assinado digitalmente", styles["contractSubtitle"]),
             Spacer(1, 0.45 * cm),
             self._meta_table(contract, signature),
             Spacer(1, 0.45 * cm),
-            Paragraph("Dados do paciente", styles["section"]),
+            Paragraph("Dados do paciente", styles["contractSection"]),
             self._data_table(
                 [
                     ("Nome", patient.get("name")),
@@ -93,7 +93,7 @@ class DocumentService:
                 ]
             ),
             Spacer(1, 0.35 * cm),
-            Paragraph("Responsavel pelo pagamento", styles["section"]),
+            Paragraph("Responsavel pelo pagamento", styles["contractSection"]),
             self._data_table(
                 [
                     ("Nome", responsible.get("name")),
@@ -102,61 +102,61 @@ class DocumentService:
                 ]
             ),
             Spacer(1, 0.35 * cm),
-            Paragraph("Termo de responsabilidade", styles["section"]),
+            Paragraph("Termo de responsabilidade", styles["contractSection"]),
             Paragraph(
                 (
                     "Para cumprimento das exigencias da Receita Federal (DMED), e obrigatoria a "
                     "apresentacao dos dados do paciente e do responsavel financeiro. O IBP garante "
                     "que tais informacoes serao utilizadas exclusivamente para fins fiscais e emissao de nota."
                 ),
-                styles["body"],
+                styles["contractBody"],
             ),
             Spacer(1, 0.2 * cm),
-            Paragraph("Condicoes da consulta psiquiatrica", styles["section"]),
+            Paragraph("Condicoes da consulta psiquiatrica", styles["contractSection"]),
         ]
 
         for item in CONSULTATION_CONDITIONS:
-            story.append(Paragraph(f"- {html.escape(item)}", styles["body"]))
+            story.append(Paragraph(f"- {html.escape(item)}", styles["contractBody"]))
 
         story.extend(
             [
                 Spacer(1, 0.2 * cm),
-                Paragraph("Natureza do servico", styles["section"]),
+                Paragraph("Natureza do servico", styles["contractSection"]),
                 Paragraph(
                     "A clinica nao dispoe de estrutura para atendimentos imediatos ou situacoes agudas.",
-                    styles["body"],
+                    styles["contractBody"],
                 ),
                 Paragraph(
                     (
                         "Em casos de urgencia ou emergencia (como agravamento subito, risco fisico ou psiquico, "
                         "ideacao suicida ou agitacao intensa), o paciente deve procurar imediatamente: UPA, Hospital ou SAMU (192)."
                     ),
-                    styles["body"],
+                    styles["contractBody"],
                 ),
                 Spacer(1, 0.2 * cm),
-                Paragraph("Comunicacao", styles["section"]),
+                Paragraph("Comunicacao", styles["contractSection"]),
             ]
         )
 
         for paragraph in COMMUNICATION_PARAGRAPHS:
-            story.append(Paragraph(html.escape(paragraph), styles["body"]))
+            story.append(Paragraph(html.escape(paragraph), styles["contractBody"]))
 
         story.extend(
             [
                 Spacer(1, 0.25 * cm),
-                Paragraph("Declaracao de ciencia e concordancia", styles["section"]),
+                Paragraph("Declaracao de ciencia e concordancia", styles["contractSection"]),
                 Paragraph(
                     "Declaro que recebi as informacoes de forma clara e estou de acordo com os termos deste contrato.",
-                    styles["body"],
+                    styles["contractBody"],
                 ),
                 Paragraph(
                     f"Data e hora do aceite: {html.escape(signature.signed_at.strftime('%d/%m/%Y %H:%M'))}",
-                    styles["bodyStrong"],
+                    styles["contractBodyStrong"],
                 ),
                 Spacer(1, 0.28 * cm),
-                self._signature_table(patient, responsible, signature),
+                self._signature_table(patient, responsible, signature, styles),
                 PageBreak(),
-                Paragraph("Evidencias da assinatura", styles["section"]),
+                Paragraph("Evidencias da assinatura", styles["contractSection"]),
                 Spacer(1, 0.3 * cm),
             ]
         )
@@ -187,8 +187,8 @@ class DocumentService:
         )
         story.append(evidence_table)
         story.append(Spacer(1, 0.45 * cm))
-        story.append(Paragraph(f"IP de origem: {html.escape(signature.ip_address or 'nao informado')}", styles["caption"]))
-        story.append(Paragraph(f"User-Agent: {html.escape(signature.user_agent or 'nao informado')}", styles["caption"]))
+        story.append(Paragraph(f"IP de origem: {html.escape(signature.ip_address or 'nao informado')}", styles["contractCaption"]))
+        story.append(Paragraph(f"User-Agent: {html.escape(signature.user_agent or 'nao informado')}", styles["contractCaption"]))
 
         doc.build(story)
         return buffer.getvalue()
@@ -197,7 +197,7 @@ class DocumentService:
         styles = getSampleStyleSheet()
         styles.add(
             ParagraphStyle(
-                name="brand",
+                name="contractBrand",
                 parent=styles["Normal"],
                 fontName="Helvetica-Bold",
                 fontSize=11,
@@ -207,7 +207,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="title",
+                name="contractTitle",
                 parent=styles["Title"],
                 fontName="Helvetica-Bold",
                 fontSize=19,
@@ -218,7 +218,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="subtitle",
+                name="contractSubtitle",
                 parent=styles["Normal"],
                 fontSize=10,
                 textColor=colors.HexColor("#586771"),
@@ -227,7 +227,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="section",
+                name="contractSection",
                 parent=styles["Heading2"],
                 fontName="Helvetica-Bold",
                 fontSize=12,
@@ -239,7 +239,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="body",
+                name="contractBody",
                 parent=styles["BodyText"],
                 fontSize=10,
                 leading=14,
@@ -249,7 +249,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="bodyStrong",
+                name="contractBodyStrong",
                 parent=styles["BodyText"],
                 fontName="Helvetica-Bold",
                 fontSize=10,
@@ -260,7 +260,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="signatureCell",
+                name="contractSignatureCell",
                 parent=styles["BodyText"],
                 fontSize=9,
                 leading=12,
@@ -270,7 +270,7 @@ class DocumentService:
         )
         styles.add(
             ParagraphStyle(
-                name="caption",
+                name="contractCaption",
                 parent=styles["Normal"],
                 fontSize=8.5,
                 leading=11,
@@ -324,7 +324,7 @@ class DocumentService:
         )
         return table
 
-    def _signature_table(self, patient: dict, responsible: dict, signature) -> Table:
+    def _signature_table(self, patient: dict, responsible: dict, signature, styles) -> Table:
         signature_image = self._image_for_pdf(signature.signature_image_path, width=5.2 * cm, height=2.1 * cm)
         selected_role = signature.signer_role or "paciente"
 
@@ -333,12 +333,14 @@ class DocumentService:
             name=patient.get("name"),
             signature_image=signature_image if selected_role == "paciente" else None,
             signed_at=signature.signed_at if selected_role == "paciente" else None,
+            styles=styles,
         )
         responsible_block = self._signature_block(
             title="Responsavel",
             name=responsible.get("name"),
             signature_image=signature_image if selected_role == "responsavel" else None,
             signed_at=signature.signed_at if selected_role == "responsavel" else None,
+            styles=styles,
         )
         table = Table([[patient_block, responsible_block]], colWidths=[8.2 * cm, 8.2 * cm])
         table.setStyle(
@@ -354,22 +356,21 @@ class DocumentService:
         )
         return table
 
-    def _signature_block(self, *, title: str, name: str | None, signature_image, signed_at: datetime | None):
-        styles = self._styles()
-        content = [Paragraph(title, styles["bodyStrong"]), Spacer(1, 0.12 * cm)]
+    def _signature_block(self, *, title: str, name: str | None, signature_image, signed_at: datetime | None, styles):
+        content = [Paragraph(title, styles["contractBodyStrong"]), Spacer(1, 0.12 * cm)]
         if signature_image is not None:
             content.extend([signature_image, Spacer(1, 0.08 * cm)])
             timestamp = signed_at.strftime("%d/%m/%Y %H:%M") if signed_at else "-"
-            content.append(Paragraph(f"Assinado em {timestamp}", styles["signatureCell"]))
+            content.append(Paragraph(f"Assinado em {timestamp}", styles["contractSignatureCell"]))
         else:
             content.extend(
                 [
-                    Paragraph("<br/><br/><br/>_______________________________", styles["signatureCell"]),
-                    Paragraph("Campo sem assinatura digital registrada", styles["signatureCell"]),
+                    Paragraph("<br/><br/><br/>_______________________________", styles["contractSignatureCell"]),
+                    Paragraph("Campo sem assinatura digital registrada", styles["contractSignatureCell"]),
                 ]
             )
         content.append(Spacer(1, 0.12 * cm))
-        content.append(Paragraph(html.escape(name or "Nao informado"), styles["signatureCell"]))
+        content.append(Paragraph(html.escape(name or "Nao informado"), styles["contractSignatureCell"]))
         return content
 
     def _image_for_pdf(self, object_name: str, *, width: float, height: float) -> Image:

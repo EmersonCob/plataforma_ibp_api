@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
 
 from app.models.enums import ContractStatus
-from app.schemas.contract import ContractFormSnapshot
+from app.schemas.contract import ContractFormSnapshot, ContractResponsibleSnapshot
 
 
 class PublicContractRead(BaseModel):
@@ -27,6 +27,7 @@ class PublicSignRequest(BaseModel):
     signer_role: Literal["paciente", "responsavel"]
     face_photo_path: str = Field(min_length=3, max_length=600)
     signature_data_url: str = Field(min_length=200)
+    responsible_snapshot: ContractResponsibleSnapshot | None = None
 
 
 class SignatureRead(BaseModel):

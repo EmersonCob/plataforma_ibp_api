@@ -9,6 +9,7 @@ os.environ.setdefault("S3_SECRET_KEY", "test")
 from app.models.client import Client  # noqa: E402
 from app.services.contract_rendering import (  # noqa: E402
     build_contract_snapshot_from_client,
+    build_client_contract_address,
     render_contract_text,
     resolve_signer_name,
 )
@@ -51,3 +52,17 @@ def test_resolve_signer_name_uses_selected_role() -> None:
 
     assert resolve_signer_name(snapshot, "paciente") == "Paciente Teste"
     assert resolve_signer_name(snapshot, "responsavel") == "Responsavel Teste"
+
+
+def test_build_client_contract_address_recomputes_when_fields_change() -> None:
+    client = Client(
+        address="Rua Antiga, 10, Centro - Cidade, MG / 30000-000",
+        address_street="Rua Nova",
+        address_number="99",
+        neighborhood="Savassi",
+        city="Belo Horizonte",
+        state="SP",
+        zip_code="01000-000",
+    )
+
+    assert build_client_contract_address(client) == "Rua Nova, 99, Savassi - Belo Horizonte, SP / 01000-000"

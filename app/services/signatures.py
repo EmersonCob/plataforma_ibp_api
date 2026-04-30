@@ -14,7 +14,7 @@ from app.models.enums import ActorType, ContractStatus
 from app.models.signature import Signature
 from app.schemas.signature import PublicSignRequest
 from app.services.audit import audit_service
-from app.services.contract_rendering import build_contract_snapshot_from_client, resolve_signer_name
+from app.services.contract_rendering import build_contract_snapshot_from_client, render_contract_text, resolve_signer_name
 from app.services.document import document_service
 from app.services.storage import storage_service
 
@@ -116,6 +116,13 @@ class SignatureService:
                 if client:
                     snapshot = build_contract_snapshot_from_client(client)
                     contract.form_snapshot = snapshot
+            if payload.responsible_snapshot is not None:
+                responsible_payload = payload.responsible_snapshot.model_dump(mode="json")
+                has_responsible_value = any((value or "").strip() for value in responsible_payload.values())
+                snapshot = dict(snapshot or {})
+                snapshot["financial_responsible"] = responsible_payload if has_responsible_value else None
+                contract.form_snapshot = snapshot
+                contract.content = render_contract_text(snapshot)
 
             signer_name = resolve_signer_name(snapshot, payload.signer_role)
             if not signer_name:

@@ -196,16 +196,15 @@ def render_contract_text(snapshot: dict[str, Any]) -> str:
 
 
 def build_client_contract_address(client: Client) -> str | None:
-    if client.address and client.address.strip():
-        return client.address.strip()
-
     first_line = ", ".join(filter(None, [_clean_optional(client.address_street), _clean_optional(client.address_number)]))
     if client.address_complement:
         first_line = ", ".join(filter(None, [first_line, _clean_optional(client.address_complement)]))
     second_line = " - ".join(filter(None, [_clean_optional(client.neighborhood), _clean_optional(client.city)]))
     third_line = " / ".join(filter(None, [_clean_optional(client.state), _clean_optional(client.zip_code)]))
     parts = [part for part in [first_line, second_line, third_line] if part]
-    return ", ".join(parts) if parts else None
+    if parts:
+        return ", ".join(parts)
+    return _clean_optional(client.address)
 
 
 def resolve_signer_name(snapshot: dict[str, Any] | None, signer_role: str) -> str | None:
