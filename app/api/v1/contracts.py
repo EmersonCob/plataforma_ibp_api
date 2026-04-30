@@ -163,6 +163,7 @@ def get_signature_evidence(contract_id: str, db: Session = Depends(get_db), _: U
         "face_photo_url": storage_service.presigned_get_url(contract.signature.face_photo_path),
         "signature_image_url": storage_service.presigned_get_url(contract.signature.signature_image_path),
         "signer_name": contract.signature.signer_name,
+        "signer_role": contract.signature.signer_role,
         "signed_at": contract.signature.signed_at,
         "ip_address": contract.signature.ip_address,
         "user_agent": contract.signature.user_agent,

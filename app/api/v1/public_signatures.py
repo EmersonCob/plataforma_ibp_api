@@ -18,6 +18,7 @@ def get_public_contract(token: str, db: Session = Depends(get_db)) -> PublicCont
         id=contract.id,
         title=contract.title,
         content=contract.content,
+        form_snapshot=contract.form_snapshot,
         status=contract.status,
         client_name=contract.client.full_name,
         link_expires_at=contract.link_expires_at,
@@ -50,4 +51,3 @@ async def sign_contract(
 @router.get("/{token}/status", response_model=PublicSignatureStatus)
 def signature_status(token: str, db: Session = Depends(get_db)) -> dict:
     return signature_service.status(db, token)
-

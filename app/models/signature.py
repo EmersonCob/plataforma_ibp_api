@@ -17,6 +17,7 @@ class Signature(UUIDMixin, TimestampMixin, Base):
 
     contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.id", ondelete="RESTRICT"), nullable=False)
     signer_name: Mapped[str] = mapped_column(String(220), nullable=False)
+    signer_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     signed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     signature_image_path: Mapped[str] = mapped_column(String(600), nullable=False)
     face_photo_path: Mapped[str] = mapped_column(String(600), nullable=False)

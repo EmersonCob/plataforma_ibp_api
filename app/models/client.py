@@ -17,6 +17,7 @@ class Client(UUIDMixin, TimestampMixin, Base):
 
     full_name: Mapped[str] = mapped_column(String(220), nullable=False)
     cpf: Mapped[str | None] = mapped_column(String(14), nullable=True, unique=True, index=True)
+    identity_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
@@ -28,6 +29,9 @@ class Client(UUIDMixin, TimestampMixin, Base):
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
     state: Mapped[str | None] = mapped_column(String(2), nullable=True)
     zip_code: Mapped[str | None] = mapped_column(String(12), nullable=True, index=True)
+    financial_responsible_name: Mapped[str | None] = mapped_column(String(220), nullable=True)
+    financial_responsible_cpf: Mapped[str | None] = mapped_column(String(14), nullable=True)
+    financial_responsible_phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[ClientStatus] = mapped_column(
         Enum(ClientStatus, name="ibp_client_status", inherit_schema=True),

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import ContractStatus
 from app.schemas.client import ClientRead
@@ -17,11 +17,48 @@ class ContractTemplateRead(BaseModel):
     updated_at: datetime
 
 
+class ContractPatientSnapshot(BaseModel):
+    name: str = Field(min_length=3, max_length=220)
+    cpf: str | None = Field(default=None, max_length=14)
+    identity_number: str | None = Field(default=None, max_length=40)
+    birth_date: date | None = None
+    phone: str | None = Field(default=None, max_length=40)
+    address: str | None = Field(default=None, max_length=400)
+
+    @field_validator("name", "cpf", "identity_number", "phone", "address", mode="before")
+    @classmethod
+    def strip_value(cls, value: str | None) -> str | None:
+        if isinstance(value, str):
+            cleaned = value.strip()
+            return cleaned or None
+        return value
+
+
+class ContractResponsibleSnapshot(BaseModel):
+    name: str | None = Field(default=None, max_length=220)
+    cpf: str | None = Field(default=None, max_length=14)
+    phone: str | None = Field(default=None, max_length=40)
+
+    @field_validator("name", "cpf", "phone", mode="before")
+    @classmethod
+    def strip_value(cls, value: str | None) -> str | None:
+        if isinstance(value, str):
+            cleaned = value.strip()
+            return cleaned or None
+        return value
+
+
+class ContractFormSnapshot(BaseModel):
+    patient: ContractPatientSnapshot
+    financial_responsible: ContractResponsibleSnapshot | None = None
+
+
 class ContractBase(BaseModel):
     client_id: str
     template_id: str | None = None
     title: str = Field(min_length=3, max_length=220)
-    content: str = Field(min_length=10)
+    content: str | None = Field(default=None, min_length=10)
+    form_snapshot: ContractFormSnapshot
 
 
 class ContractCreate(ContractBase):
@@ -31,6 +68,7 @@ class ContractCreate(ContractBase):
 class ContractUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=220)
     content: str | None = Field(default=None, min_length=10)
+    form_snapshot: ContractFormSnapshot | None = None
     status: ContractStatus | None = None
 
 
@@ -56,6 +94,7 @@ class ContractRead(BaseModel):
     created_by: str
     created_at: datetime
     updated_at: datetime
+    form_snapshot: ContractFormSnapshot | None = None
     client: ClientRead | None = None
 
 
@@ -94,4 +133,3 @@ class SignedDocumentResponse(BaseModel):
     signed_document_url: str
     signed_document_hash: str | None = None
     generated_at: datetime | None = None
-

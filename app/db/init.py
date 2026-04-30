@@ -10,16 +10,9 @@ from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.models import AuditLog, Client, Contract, ContractTemplate, ContractVersion, NotificationEvent, Signature, User  # noqa: F401
 from app.models.enums import UserRole
+from app.services.contract_rendering import DEFAULT_CONTRACT_TITLE, DEFAULT_TEMPLATE_TEXT
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_TEMPLATE = """CONTRATO DE PRESTACAO DE SERVICOS DE ATENDIMENTO PSIQUIATRICO
-
-Pelo presente instrumento, as partes identificadas concordam com as condicoes de atendimento, sigilo profissional, responsabilidades, agendamento, cancelamento e demais orientacoes clinicas informadas pelo consultorio.
-
-O paciente declara ter lido e compreendido o conteudo deste documento antes da assinatura.
-"""
-
 
 def init_database_schema() -> None:
     """Create missing application tables and validate that the expected schema is available."""
@@ -131,16 +124,18 @@ def bootstrap_initial_data() -> None:
 
         if settings.bootstrap_default_template:
             template = db.scalar(
-                select(ContractTemplate).where(ContractTemplate.name == "Contrato de Atendimento Psiquiatrico")
+                select(ContractTemplate).where(ContractTemplate.name == DEFAULT_CONTRACT_TITLE)
             )
             if not template:
                 db.add(
                     ContractTemplate(
-                        name="Contrato de Atendimento Psiquiatrico",
-                        content=DEFAULT_TEMPLATE,
+                        name=DEFAULT_CONTRACT_TITLE,
+                        content=DEFAULT_TEMPLATE_TEXT,
                         is_active=True,
                     )
                 )
+            elif template.content != DEFAULT_TEMPLATE_TEXT:
+                template.content = DEFAULT_TEMPLATE_TEXT
 
         db.commit()
 

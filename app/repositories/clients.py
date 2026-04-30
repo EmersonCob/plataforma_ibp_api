@@ -15,8 +15,11 @@ class ClientRepository:
                 Client.full_name.ilike(term),
                 Client.email.ilike(term),
                 Client.cpf.ilike(term),
+                Client.identity_number.ilike(term),
                 Client.city.ilike(term),
                 Client.zip_code.ilike(term),
+                Client.financial_responsible_name.ilike(term),
+                Client.financial_responsible_cpf.ilike(term),
             )
             statement = statement.where(condition)
             count_statement = count_statement.where(condition)

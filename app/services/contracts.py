@@ -15,6 +15,7 @@ from app.models.user import User
 from app.repositories.contracts import contract_repository
 from app.schemas.contract import ContractCreate, ContractUpdate
 from app.services.audit import audit_service
+from app.services.contract_rendering import build_contract_snapshot_from_client, normalize_contract_snapshot, render_contract_text
 from app.services.document import document_service
 from app.services.storage import storage_service
 
@@ -40,22 +41,28 @@ class ContractService:
             .where(Contract.id == contract_id)
         )
         if not contract:
-            raise not_found("Contrato não encontrado")
+            raise not_found("Contrato nao encontrado")
+        if not contract.form_snapshot and contract.client:
+            contract.form_snapshot = build_contract_snapshot_from_client(contract.client)
         return contract
 
     def create(self, db: Session, payload: ContractCreate, user: User) -> Contract:
         client = db.get(Client, payload.client_id)
         if not client:
-            raise not_found("Cliente não encontrado")
+            raise not_found("Cliente nao encontrado")
+
+        snapshot = normalize_contract_snapshot(payload.form_snapshot, client=client)
+        content = payload.content.strip() if payload.content else render_contract_text(snapshot)
 
         contract = Contract(
             client_id=payload.client_id,
             template_id=payload.template_id,
             title=payload.title,
-            content=payload.content,
+            content=content,
             created_by=user.id,
             status=ContractStatus.rascunho,
             current_version=1,
+            form_snapshot=snapshot,
         )
         db.add(contract)
         db.flush()
@@ -63,10 +70,10 @@ class ContractService:
             ContractVersion(
                 contract_id=contract.id,
                 version_number=1,
-                content=payload.content,
+                content=content,
                 changed_by=user.id,
                 created_at=now_utc(),
-                metadata_json={"reason": "initial_version"},
+                metadata_json={"reason": "initial_version", "form_snapshot": snapshot},
             )
         )
         audit_service.log(
@@ -83,15 +90,20 @@ class ContractService:
     def update(self, db: Session, contract_id: str, payload: ContractUpdate, user: User) -> Contract:
         contract = self.get(db, contract_id)
         if contract.status == ContractStatus.assinado:
-            raise AppError("Contrato assinado não pode ser editado. Crie uma nova versão/contrato.", 409, "signed_contract_locked")
+            raise AppError("Contrato assinado nao pode ser editado. Crie uma nova versao/contrato.", 409, "signed_contract_locked")
         if contract.status in {ContractStatus.cancelado, ContractStatus.expirado}:
-            raise AppError("Contrato cancelado ou expirado não pode ser editado.", 409, "contract_locked")
+            raise AppError("Contrato cancelado ou expirado nao pode ser editado.", 409, "contract_locked")
 
         updates = payload.model_dump(exclude_unset=True)
+        if payload.form_snapshot is not None:
+            updates["form_snapshot"] = normalize_contract_snapshot(payload.form_snapshot, client=contract.client)
+            updates["content"] = render_contract_text(updates["form_snapshot"])
         content_changed = "content" in updates and updates["content"] != contract.content
 
         if "title" in updates:
             contract.title = updates["title"]
+        if "form_snapshot" in updates:
+            contract.form_snapshot = updates["form_snapshot"]
         if content_changed:
             contract.content = updates["content"]
             contract.current_version += 1
@@ -103,7 +115,7 @@ class ContractService:
                     content=contract.content,
                     changed_by=user.id,
                     created_at=now_utc(),
-                    metadata_json={"reason": "admin_edit"},
+                    metadata_json={"reason": "admin_edit", "form_snapshot": contract.form_snapshot},
                 )
             )
         if "status" in updates and updates["status"] not in LOCKED_STATUSES:
@@ -124,7 +136,7 @@ class ContractService:
     def generate_link(self, db: Session, contract_id: str, user: User, expires_at: datetime | None = None) -> tuple[Contract, str]:
         contract = self.get(db, contract_id)
         if contract.status in LOCKED_STATUSES:
-            raise AppError("Não é possível gerar link para contrato bloqueado.", 409, "contract_locked")
+            raise AppError("Nao e possivel gerar link para contrato bloqueado.", 409, "contract_locked")
 
         contract.generated_link_token = generate_public_token()
         contract.link_expires_at = expires_at
@@ -146,7 +158,7 @@ class ContractService:
     def cancel(self, db: Session, contract_id: str, user: User) -> Contract:
         contract = self.get(db, contract_id)
         if contract.status == ContractStatus.assinado:
-            raise AppError("Contrato assinado não pode ser cancelado.", 409, "signed_contract_locked")
+            raise AppError("Contrato assinado nao pode ser cancelado.", 409, "signed_contract_locked")
         contract.status = ContractStatus.cancelado
         audit_service.log(
             db,
@@ -162,7 +174,7 @@ class ContractService:
     def expire(self, db: Session, contract_id: str, user: User) -> Contract:
         contract = self.get(db, contract_id)
         if contract.status == ContractStatus.assinado:
-            raise AppError("Contrato assinado não pode ser expirado.", 409, "signed_contract_locked")
+            raise AppError("Contrato assinado nao pode ser expirado.", 409, "signed_contract_locked")
         contract.status = ContractStatus.expirado
         audit_service.log(
             db,
@@ -178,7 +190,7 @@ class ContractService:
     def delete(self, db: Session, contract_id: str, user: User) -> None:
         contract = self.get(db, contract_id)
         if contract.status == ContractStatus.assinado or contract.signature:
-            raise AppError("Contrato assinado não pode ser apagado.", 409, "signed_contract_locked")
+            raise AppError("Contrato assinado nao pode ser apagado.", 409, "signed_contract_locked")
 
         audit_service.log(
             db,
@@ -205,7 +217,7 @@ class ContractService:
     def add_version(self, db: Session, contract_id: str, content: str, user: User) -> ContractVersion:
         contract = self.get(db, contract_id)
         if contract.status == ContractStatus.assinado:
-            raise AppError("Contrato assinado é imutável.", 409, "signed_contract_locked")
+            raise AppError("Contrato assinado e imutavel.", 409, "signed_contract_locked")
 
         contract.current_version += 1
         contract.content = content
@@ -250,7 +262,7 @@ class ContractService:
 
     def signed_document_response(self, contract: Contract) -> dict:
         if not contract.signed_document_path:
-            raise AppError("Documento final ainda não foi gerado.", 404, "signed_document_not_found")
+            raise AppError("Documento final ainda nao foi gerado.", 404, "signed_document_not_found")
         return {
             "contract_id": contract.id,
             "signed_document_path": contract.signed_document_path,

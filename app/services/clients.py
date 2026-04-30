@@ -7,6 +7,7 @@ from app.models.user import User
 from app.repositories.clients import client_repository
 from app.schemas.client import ClientCreate, ClientUpdate
 from app.services.audit import audit_service
+from app.services.contract_rendering import build_client_contract_address
 
 
 class ClientService:
@@ -20,7 +21,9 @@ class ClientService:
         return client
 
     def create(self, db: Session, payload: ClientCreate, user: User) -> Client:
-        client = Client(**payload.model_dump())
+        data = payload.model_dump()
+        client = Client(**data)
+        client.address = build_client_contract_address(client)
         db.add(client)
         db.flush()
         audit_service.log(
@@ -40,6 +43,7 @@ class ClientService:
         updates = payload.model_dump(exclude_unset=True)
         for field, value in updates.items():
             setattr(client, field, value)
+        client.address = build_client_contract_address(client)
         audit_service.log(
             db,
             entity_type="client",
@@ -55,4 +59,3 @@ class ClientService:
 
 
 client_service = ClientService()
-

@@ -42,6 +42,7 @@ class Contract(UUIDMixin, TimestampMixin, Base):
     signed_document_path: Mapped[str | None] = mapped_column(String(600), nullable=True)
     signed_document_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_by: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    form_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     final_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     client = relationship("Client", back_populates="contracts")
