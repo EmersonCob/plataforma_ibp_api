@@ -20,12 +20,11 @@ class ContractTemplateRead(BaseModel):
 class ContractPatientSnapshot(BaseModel):
     name: str = Field(min_length=3, max_length=220)
     cpf: str | None = Field(default=None, max_length=14)
-    identity_number: str | None = Field(default=None, max_length=40)
     birth_date: date | None = None
     phone: str | None = Field(default=None, max_length=40)
     address: str | None = Field(default=None, max_length=400)
 
-    @field_validator("name", "cpf", "identity_number", "phone", "address", mode="before")
+    @field_validator("name", "cpf", "phone", "address", mode="before")
     @classmethod
     def strip_value(cls, value: str | None) -> str | None:
         if isinstance(value, str):

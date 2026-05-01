@@ -7,84 +7,103 @@ from app.models.client import Client
 
 DEFAULT_CONTRACT_TITLE = "Termo de Responsabilidade e Contrato de Consulta"
 
+RESPONSIBILITY_PARAGRAPH = (
+    "Para cumprimento das exigências da Receita Federal (DMED), é obrigatória a apresentação dos "
+    "dados do paciente e do responsável financeiro, quando houver. O IBP garante que tais "
+    "informações serão utilizadas exclusivamente para fins fiscais e para emissão de nota."
+)
+
 CONSULTATION_CONDITIONS = [
-    "Os atendimentos sao realizados em regime ambulatorial, com acompanhamento programado.",
-    "Nao se trata de servico de urgencia ou emergencia.",
-    "Nao ha retorno gratuito: cada consulta e considerada um novo atendimento.",
-    "O paciente declara estar ciente e de acordo com essas condicoes.",
+    "Os atendimentos são realizados em regime ambulatorial, com acompanhamento programado.",
+    "Não se trata de serviço de urgência ou emergência.",
+    "Não há retorno gratuito: cada consulta é considerada um novo atendimento.",
+    "O paciente declara estar ciente e de acordo com essas condições.",
+]
+
+SERVICE_NATURE_PARAGRAPHS = [
+    "A clínica não dispõe de estrutura para atendimentos imediatos ou situações agudas.",
+    (
+        "Em casos de urgência ou emergência, como agravamento súbito, risco físico ou psíquico, "
+        "ideação suicida ou agitação intensa, o paciente deve procurar imediatamente UPA, Hospital "
+        "ou SAMU (192)."
+    ),
 ]
 
 COMMUNICATION_PARAGRAPHS = [
     (
-        "A clinica disponibiliza canais de comunicacao, como aplicativos de mensagens "
-        "(ex.: WhatsApp), com o objetivo de oferecer acolhimento, orientacoes gerais "
-        "e apoio em duvidas pontuais, alem de tratar de questoes administrativas."
+        "A clínica disponibiliza canais de comunicação, como aplicativos de mensagens (ex.: "
+        "WhatsApp), com o objetivo de oferecer acolhimento, orientações gerais, apoio em dúvidas "
+        "pontuais e tratar de questões administrativas."
     ),
     (
-        "Prezamos por um atendimento atencioso e respeitoso, porem, devido a alta demanda, "
-        "as respostas podem nao ser imediatas, podendo ocorrer tempo de espera para retorno."
+        "Prezamos por um atendimento atencioso e respeitoso; porém, devido à alta demanda, as "
+        "respostas podem não ser imediatas, podendo ocorrer tempo de espera para retorno."
     ),
     (
-        "Esse canal nao substitui a consulta medica, sendo fundamental o agendamento de "
-        "atendimento sempre que houver necessidade de avaliacao clinica mais detalhada."
+        "Esse canal não substitui a consulta médica, sendo fundamental o agendamento de atendimento "
+        "sempre que houver necessidade de avaliação clínica mais detalhada."
     ),
     (
-        "Esse meio nao deve ser utilizado em situacoes de urgencia ou emergencia. Caso haja "
-        "agravamento do quadro, sofrimento intenso ou qualquer situacao que exija avaliacao "
-        "imediata, orientamos que o paciente procure diretamente um servico de urgencia/"
-        "emergencia para um cuidado mais rapido e seguro."
+        "Esse meio não deve ser utilizado em situações de urgência ou emergência. Caso haja "
+        "agravamento do quadro, sofrimento intenso ou qualquer situação que exija avaliação "
+        "imediata, orientamos que o paciente procure diretamente um serviço de urgência/emergência "
+        "para um cuidado mais rápido e seguro."
     ),
 ]
+
+SCIENCE_DECLARATION = (
+    "Declaro que recebi as informações de forma clara, compreendi o conteúdo deste contrato e estou "
+    "de acordo com os termos apresentados."
+)
 
 DEFAULT_TEMPLATE_TEXT = """TERMO DE RESPONSABILIDADE E CONTRATO DE CONSULTA
 IBP - Instituto Brasileiro de Psiquiatria
 
-DADOS DO PACIENTE
+1. QUALIFICAÇÃO DO PACIENTE
 Nome: __________________________________________
 CPF: ___________________________________________
-Identidade: _____________________________________
-Data de Nascimento: _____________________________
-Telefone: _______________________________________
-Endereco: ______________________________________
+Data de nascimento: ____________________________
+Telefone: ______________________________________
+Endereço: ______________________________________
 
-RESPONSAVEL PELO PAGAMENTO (SE APLICAVEL)
+2. RESPONSÁVEL FINANCEIRO, QUANDO HOUVER
 Nome: __________________________________________
 CPF: ___________________________________________
-Telefone: _______________________________________
+Telefone: ______________________________________
 
-TERMO DE RESPONSABILIDADE
-Para cumprimento das exigencias da Receita Federal (DMED), e obrigatoria a apresentacao dos dados
-do paciente e do responsavel financeiro. O IBP garante que tais informacoes serao utilizadas
-exclusivamente para fins fiscais e emissao de nota.
+3. TERMO DE RESPONSABILIDADE
+Para cumprimento das exigências da Receita Federal (DMED), é obrigatória a apresentação dos dados
+do paciente e do responsável financeiro, quando houver. O IBP garante que tais informações serão
+utilizadas exclusivamente para fins fiscais e para emissão de nota.
 
-CONDICOES DA CONSULTA PSIQUIATRICA
-- Os atendimentos sao realizados em regime ambulatorial, com acompanhamento programado.
-- Nao se trata de servico de urgencia ou emergencia.
-- Nao ha retorno gratuito: cada consulta e considerada um novo atendimento.
-- O paciente declara estar ciente e de acordo com essas condicoes.
+4. CONDIÇÕES DA CONSULTA PSIQUIÁTRICA
+- Os atendimentos são realizados em regime ambulatorial, com acompanhamento programado.
+- Não se trata de serviço de urgência ou emergência.
+- Não há retorno gratuito: cada consulta é considerada um novo atendimento.
+- O paciente declara estar ciente e de acordo com essas condições.
 
-NATUREZA DO SERVICO
-A clinica nao dispoe de estrutura para atendimentos imediatos ou situacoes agudas.
-Em casos de urgencia ou emergencia (como agravamento subito, risco fisico ou psiquico, ideacao suicida
-ou agitacao intensa), o paciente deve procurar imediatamente: UPA, Hospital ou SAMU (192).
+5. NATUREZA DO SERVIÇO
+A clínica não dispõe de estrutura para atendimentos imediatos ou situações agudas.
+Em casos de urgência ou emergência, como agravamento súbito, risco físico ou psíquico, ideação
+suicida ou agitação intensa, o paciente deve procurar imediatamente UPA, Hospital ou SAMU (192).
 
-COMUNICACAO
-A clinica disponibiliza canais de comunicacao, como aplicativos de mensagens (ex.: WhatsApp), com o
-objetivo de oferecer acolhimento, orientacoes gerais e apoio em duvidas pontuais, alem de tratar de
-questoes administrativas.
-Prezamos por um atendimento atencioso e respeitoso, porem, devido a alta demanda, as respostas
-podem nao ser imediatas, podendo ocorrer tempo de espera para retorno.
-Esse canal nao substitui a consulta medica, sendo fundamental o agendamento de atendimento sempre
-que houver necessidade de avaliacao clinica mais detalhada.
-Esse meio nao deve ser utilizado em situacoes de urgencia ou emergencia. Caso haja agravamento do
-quadro, sofrimento intenso ou qualquer situacao que exija avaliacao imediata, orientamos que o
-paciente procure diretamente um servico de urgencia/emergencia para um cuidado mais rapido e seguro.
+6. COMUNICAÇÃO
+A clínica disponibiliza canais de comunicação, como aplicativos de mensagens (ex.: WhatsApp), com
+o objetivo de oferecer acolhimento, orientações gerais, apoio em dúvidas pontuais e tratar de
+questões administrativas.
+Prezamos por um atendimento atencioso e respeitoso; porém, devido à alta demanda, as respostas
+podem não ser imediatas, podendo ocorrer tempo de espera para retorno.
+Esse canal não substitui a consulta médica, sendo fundamental o agendamento de atendimento sempre
+que houver necessidade de avaliação clínica mais detalhada.
+Esse meio não deve ser utilizado em situações de urgência ou emergência. Caso haja agravamento do
+quadro, sofrimento intenso ou qualquer situação que exija avaliação imediata, orientamos que o
+paciente procure diretamente um serviço de urgência/emergência para um cuidado mais rápido e seguro.
 
-DECLARACAO DE CIENCIA E CONCORDANCIA
-Declaro que recebi as informacoes de forma clara e estou de acordo com os termos deste contrato.
-Local e Data: __________________________________
-Assinatura do Paciente: __________________________
-Assinatura do Responsavel: _______________________
+7. DECLARAÇÃO DE CIÊNCIA E CONCORDÂNCIA
+Declaro que recebi as informações de forma clara, compreendi o conteúdo deste contrato e estou de
+acordo com os termos apresentados.
+Local e data: __________________________________
+Assinatura eletrônica: _________________________
 """
 
 
@@ -103,7 +122,6 @@ def build_contract_snapshot_from_client(client: Client) -> dict[str, Any]:
         "patient": {
             "name": client.full_name,
             "cpf": _clean_optional(client.cpf),
-            "identity_number": _clean_optional(getattr(client, "identity_number", None)),
             "birth_date": _date_to_iso(client.birth_date),
             "phone": _clean_optional(client.phone),
             "address": build_client_contract_address(client),
@@ -121,7 +139,6 @@ def normalize_contract_snapshot(snapshot: Any, *, client: Client) -> dict[str, A
     patient = {
         "name": _clean_optional(patient_incoming.get("name")) or patient_base["name"],
         "cpf": _clean_optional(patient_incoming.get("cpf")) or patient_base.get("cpf"),
-        "identity_number": _clean_optional(patient_incoming.get("identity_number")) or patient_base.get("identity_number"),
         "birth_date": _date_to_iso(patient_incoming.get("birth_date")) or patient_base.get("birth_date"),
         "phone": _clean_optional(patient_incoming.get("phone")) or patient_base.get("phone"),
         "address": _clean_optional(patient_incoming.get("address")) or patient_base.get("address"),
@@ -153,44 +170,34 @@ def render_contract_text(snapshot: dict[str, Any]) -> str:
         "TERMO DE RESPONSABILIDADE E CONTRATO DE CONSULTA",
         "IBP - Instituto Brasileiro de Psiquiatria",
         "",
-        "DADOS DO PACIENTE",
+        "1. QUALIFICAÇÃO DO PACIENTE",
         f"Nome: {_display_value(patient.get('name'))}",
         f"CPF: {_display_value(patient.get('cpf'))}",
-        f"Identidade: {_display_value(patient.get('identity_number'))}",
-        f"Data de Nascimento: {_display_date(patient.get('birth_date'))}",
+        f"Data de nascimento: {_display_date(patient.get('birth_date'))}",
         f"Telefone: {_display_value(patient.get('phone'))}",
-        f"Endereco: {_display_value(patient.get('address'))}",
+        f"Endereço: {_display_value(patient.get('address'))}",
         "",
-        "RESPONSAVEL PELO PAGAMENTO (SE APLICAVEL)",
+        "2. RESPONSÁVEL FINANCEIRO, QUANDO HOUVER",
         f"Nome: {_display_value(responsible.get('name'))}",
         f"CPF: {_display_value(responsible.get('cpf'))}",
         f"Telefone: {_display_value(responsible.get('phone'))}",
         "",
-        "TERMO DE RESPONSABILIDADE",
-        (
-            "Para cumprimento das exigencias da Receita Federal (DMED), e obrigatoria a apresentacao "
-            "dos dados do paciente e do responsavel financeiro. O IBP garante que tais informacoes "
-            "serao utilizadas exclusivamente para fins fiscais e emissao de nota."
-        ),
+        "3. TERMO DE RESPONSABILIDADE",
+        RESPONSIBILITY_PARAGRAPH,
         "",
-        "CONDICOES DA CONSULTA PSIQUIATRICA",
+        "4. CONDIÇÕES DA CONSULTA PSIQUIÁTRICA",
         *[f"- {item}" for item in CONSULTATION_CONDITIONS],
         "",
-        "NATUREZA DO SERVICO",
-        "A clinica nao dispoe de estrutura para atendimentos imediatos ou situacoes agudas.",
-        (
-            "Em casos de urgencia ou emergencia (como agravamento subito, risco fisico ou psiquico, "
-            "ideacao suicida ou agitacao intensa), o paciente deve procurar imediatamente: UPA, Hospital ou SAMU (192)."
-        ),
+        "5. NATUREZA DO SERVIÇO",
+        *SERVICE_NATURE_PARAGRAPHS,
         "",
-        "COMUNICACAO",
+        "6. COMUNICAÇÃO",
         *COMMUNICATION_PARAGRAPHS,
         "",
-        "DECLARACAO DE CIENCIA E CONCORDANCIA",
-        "Declaro que recebi as informacoes de forma clara e estou de acordo com os termos deste contrato.",
-        "Local e Data: __________________________________",
-        "Assinatura do Paciente: __________________________",
-        "Assinatura do Responsavel: _______________________",
+        "7. DECLARAÇÃO DE CIÊNCIA E CONCORDÂNCIA",
+        SCIENCE_DECLARATION,
+        "Local e data: preenchimento automático no momento da assinatura digital.",
+        "Assinatura eletrônica: registrada na versão final do documento.",
     ]
     return "\n".join(lines)
 
@@ -217,13 +224,13 @@ def resolve_signer_name(snapshot: dict[str, Any] | None, signer_role: str) -> st
 
 def _display_value(value: Any) -> str:
     cleaned = _clean_optional(value)
-    return cleaned or "Nao informado"
+    return cleaned or "Não informado"
 
 
 def _display_date(value: Any) -> str:
     iso = _date_to_iso(value)
     if not iso:
-        return "Nao informado"
+        return "Não informado"
     try:
         parsed = date.fromisoformat(iso)
     except ValueError:

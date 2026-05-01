@@ -19,7 +19,6 @@ def test_build_snapshot_and_render_contract_text() -> None:
     client = Client(
         full_name="Maria da Silva",
         cpf="123.456.789-10",
-        identity_number="MG-12.345.678",
         birth_date=date(1990, 5, 17),
         phone="(31) 99999-0000",
         address_street="Rua das Flores",
@@ -39,9 +38,9 @@ def test_build_snapshot_and_render_contract_text() -> None:
 
     assert snapshot["patient"]["address"] == "Rua das Flores, 120, Apto 301, Centro - Belo Horizonte, MG / 30100-000"
     assert "Maria da Silva" in text
-    assert "MG-12.345.678" in text
+    assert "qualificação do paciente".upper() in text.upper()
     assert "Joao da Silva" in text
-    assert "Assinatura do Responsavel" in text
+    assert "Assinatura eletrônica" in text
 
 
 def test_resolve_signer_name_uses_selected_role() -> None:

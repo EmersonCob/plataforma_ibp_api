@@ -17,10 +17,10 @@ class Client(UUIDMixin, TimestampMixin, Base):
 
     full_name: Mapped[str] = mapped_column(String(220), nullable=False)
     cpf: Mapped[str | None] = mapped_column(String(14), nullable=True, unique=True, index=True)
-    identity_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    photo_path: Mapped[str | None] = mapped_column(String(600), nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
     address_street: Mapped[str | None] = mapped_column(String(220), nullable=True)
     address_number: Mapped[str | None] = mapped_column(String(40), nullable=True)

@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     password_reset_rate_limit: str = "5/minute"
     password_reset_token_expire_minutes: int = 60
     frontend_app_url: str = "https://ibp-web-qa.jbtechinnova.com"
+    display_timezone: str = "America/Sao_Paulo"
 
     smtp_host: str | None = None
     smtp_port: int = 587

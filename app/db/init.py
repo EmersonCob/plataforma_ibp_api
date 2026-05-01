@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
-from app.models import AuditLog, Client, Contract, ContractTemplate, ContractVersion, NotificationEvent, Signature, User  # noqa: F401
+from app.models import AuditLog, Client, Contract, ContractTemplate, ContractVersion, NotificationEvent, ProntuarioEntry, Signature, User  # noqa: F401
 from app.models.enums import UserRole
 from app.services.contract_rendering import DEFAULT_CONTRACT_TITLE, DEFAULT_TEMPLATE_TEXT
 

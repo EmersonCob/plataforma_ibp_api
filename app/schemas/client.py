@@ -8,7 +8,6 @@ from app.models.enums import ClientStatus
 class ClientBase(BaseModel):
     full_name: str = Field(min_length=3, max_length=220)
     cpf: str | None = Field(default=None, max_length=14)
-    identity_number: str | None = Field(default=None, max_length=40)
     birth_date: date | None = None
     phone: str | None = Field(default=None, max_length=40)
     email: EmailStr | None = None
@@ -28,7 +27,6 @@ class ClientBase(BaseModel):
 
     @field_validator(
         "cpf",
-        "identity_number",
         "phone",
         "address",
         "address_street",
@@ -62,7 +60,6 @@ class ClientCreate(ClientBase):
 class ClientUpdate(BaseModel):
     full_name: str | None = Field(default=None, min_length=3, max_length=220)
     cpf: str | None = Field(default=None, max_length=14)
-    identity_number: str | None = Field(default=None, max_length=40)
     birth_date: date | None = None
     phone: str | None = Field(default=None, max_length=40)
     email: EmailStr | None = None
@@ -82,7 +79,6 @@ class ClientUpdate(BaseModel):
 
     @field_validator(
         "cpf",
-        "identity_number",
         "phone",
         "address",
         "address_street",
@@ -117,6 +113,8 @@ class ClientRead(ClientBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    photo_path: str | None = None
+    photo_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
