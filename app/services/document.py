@@ -73,10 +73,10 @@ class DocumentService:
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
-            rightMargin=2 * cm,
-            leftMargin=3 * cm,
-            topMargin=3 * cm,
-            bottomMargin=2 * cm,
+            rightMargin=1.85 * cm,
+            leftMargin=2.35 * cm,
+            topMargin=1.8 * cm,
+            bottomMargin=1.7 * cm,
             title=contract.title,
         )
         styles = self._styles()
@@ -84,10 +84,9 @@ class DocumentService:
         story = [
             Paragraph("IBP - Instituto Brasileiro de Psiquiatria", styles["contractBrand"]),
             Paragraph(html.escape(contract.title), styles["contractTitle"]),
-            Spacer(1, 0.15 * cm),
-            Paragraph(self._metadata_line(contract, signature), styles["contractMeta"]),
-            Spacer(1, 0.35 * cm),
-            Paragraph("1. Qualificação do paciente", styles["contractSection"]),
+            Paragraph("Documento final assinado digitalmente", styles["contractSubtitle"]),
+            Spacer(1, 0.38 * cm),
+            Paragraph("Dados do paciente", styles["contractSection"]),
             self._data_table(
                 [
                     ("Nome", patient.get("name")),
@@ -105,7 +104,7 @@ class DocumentService:
             story.extend(
                 [
                     Spacer(1, 0.28 * cm),
-                    Paragraph("2. Responsável financeiro, quando houver", styles["contractSection"]),
+                    Paragraph("Responsável financeiro", styles["contractSection"]),
                     self._data_table(
                         [
                             ("Nome", responsible.get("name")),
@@ -120,11 +119,11 @@ class DocumentService:
 
         story.extend(
             [
-                Spacer(1, 0.28 * cm),
-                Paragraph("3. Termo de responsabilidade", styles["contractSection"]),
+                Spacer(1, 0.26 * cm),
+                Paragraph("Termo de responsabilidade", styles["contractSection"]),
                 Paragraph(html.escape(RESPONSIBILITY_PARAGRAPH), styles["contractBody"]),
-                Spacer(1, 0.18 * cm),
-                Paragraph("4. Condições da consulta psiquiátrica", styles["contractSection"]),
+                Spacer(1, 0.14 * cm),
+                Paragraph("Condições da consulta psiquiátrica", styles["contractSection"]),
             ]
         )
         for item in CONSULTATION_CONDITIONS:
@@ -132,8 +131,8 @@ class DocumentService:
 
         story.extend(
             [
-                Spacer(1, 0.18 * cm),
-                Paragraph("5. Natureza do serviço", styles["contractSection"]),
+                Spacer(1, 0.14 * cm),
+                Paragraph("Natureza do serviço", styles["contractSection"]),
             ]
         )
         for paragraph in SERVICE_NATURE_PARAGRAPHS:
@@ -141,8 +140,8 @@ class DocumentService:
 
         story.extend(
             [
-                Spacer(1, 0.18 * cm),
-                Paragraph("6. Comunicação", styles["contractSection"]),
+                Spacer(1, 0.14 * cm),
+                Paragraph("Comunicação", styles["contractSection"]),
             ]
         )
         for paragraph in COMMUNICATION_PARAGRAPHS:
@@ -151,18 +150,21 @@ class DocumentService:
         story.extend(
             [
                 Spacer(1, 0.18 * cm),
-                Paragraph("7. Declaração de ciência e concordância", styles["contractSection"]),
+                Paragraph("Declaração de ciência e concordância", styles["contractSection"]),
                 Paragraph(html.escape(SCIENCE_DECLARATION), styles["contractBody"]),
                 Paragraph(
                     f"Assinatura eletrônica registrada em {html.escape(format_display_datetime(signature.signed_at))} (horário de Brasília).",
                     styles["contractBodyStrong"],
                 ),
-                Spacer(1, 0.28 * cm),
+                Spacer(1, 0.22 * cm),
                 Paragraph("Evidências da assinatura", styles["contractSection"]),
                 self._evidence_table(signature, patient, responsible, doc.width, styles),
-                Spacer(1, 0.22 * cm),
+                Spacer(1, 0.18 * cm),
                 Paragraph(f"IP de origem: {html.escape(signature.ip_address or 'Não informado')}", styles["contractCaption"]),
                 Paragraph(f"Navegador: {html.escape(signature.user_agent or 'Não informado')}", styles["contractCaption"]),
+                Spacer(1, 0.18 * cm),
+                Paragraph("Resumo do registro digital", styles["contractFootnoteTitle"]),
+                self._metadata_footer_table(contract, signature, doc.width, styles),
             ]
         )
 
@@ -175,10 +177,10 @@ class DocumentService:
             ParagraphStyle(
                 name="contractBrand",
                 parent=styles["Normal"],
-                fontName="Times-Bold",
-                fontSize=10.5,
+                fontName="Helvetica-Bold",
+                fontSize=11,
                 alignment=TA_CENTER,
-                textColor=colors.HexColor("#213631"),
+                textColor=colors.HexColor("#0F5B52"),
                 spaceAfter=4,
             )
         )
@@ -186,81 +188,81 @@ class DocumentService:
             ParagraphStyle(
                 name="contractTitle",
                 parent=styles["Title"],
-                fontName="Times-Bold",
-                fontSize=14.5,
-                leading=18,
+                fontName="Helvetica-Bold",
+                fontSize=18.5,
+                leading=21,
                 alignment=TA_CENTER,
-                textColor=colors.HexColor("#101918"),
-                spaceAfter=0,
+                textColor=colors.HexColor("#1C2B25"),
+                spaceAfter=2,
             )
         )
         styles.add(
             ParagraphStyle(
-                name="contractMeta",
+                name="contractSubtitle",
                 parent=styles["Normal"],
                 fontName="Helvetica",
-                fontSize=7.8,
-                leading=10,
+                fontSize=10,
                 alignment=TA_CENTER,
-                textColor=colors.HexColor("#66757E"),
+                textColor=colors.HexColor("#586771"),
+                spaceAfter=2,
             )
         )
         styles.add(
             ParagraphStyle(
                 name="contractSection",
                 parent=styles["Heading2"],
-                fontName="Times-Bold",
-                fontSize=11.2,
-                leading=13,
-                textColor=colors.HexColor("#162524"),
-                spaceAfter=5,
-                spaceBefore=2,
+                fontName="Helvetica-Bold",
+                fontSize=11.3,
+                leading=13.5,
+                textColor=colors.HexColor("#17342F"),
+                spaceAfter=6,
+                spaceBefore=1,
             )
         )
         styles.add(
             ParagraphStyle(
                 name="contractBody",
                 parent=styles["BodyText"],
-                fontName="Times-Roman",
-                fontSize=10.5,
-                leading=16,
+                fontName="Helvetica",
+                fontSize=10.1,
+                leading=13.8,
                 alignment=TA_JUSTIFY,
-                textColor=colors.HexColor("#1E2B29"),
-                spaceAfter=4,
+                textColor=colors.HexColor("#24333A"),
+                spaceAfter=3,
             )
         )
         styles.add(
             ParagraphStyle(
                 name="contractBodyStrong",
                 parent=styles["BodyText"],
-                fontName="Times-Bold",
-                fontSize=10.5,
-                leading=16,
+                fontName="Helvetica-Bold",
+                fontSize=10.1,
+                leading=13.8,
                 alignment=TA_JUSTIFY,
-                textColor=colors.HexColor("#1E2B29"),
-                spaceAfter=4,
+                textColor=colors.HexColor("#24333A"),
+                spaceAfter=3,
             )
         )
         styles.add(
             ParagraphStyle(
                 name="contractBullet",
                 parent=styles["BodyText"],
-                fontName="Times-Roman",
-                fontSize=10.5,
-                leading=16,
-                leftIndent=12,
-                firstLineIndent=-8,
+                fontName="Helvetica",
+                fontSize=10.1,
+                leading=13.6,
+                leftIndent=11,
+                firstLineIndent=-7,
                 alignment=TA_JUSTIFY,
-                textColor=colors.HexColor("#1E2B29"),
-                spaceAfter=3,
+                textColor=colors.HexColor("#24333A"),
+                spaceAfter=2,
             )
         )
         styles.add(
             ParagraphStyle(
                 name="tableLabel",
                 parent=styles["BodyText"],
-                fontName="Times-Bold",
-                fontSize=9.4,
+                fontName="Helvetica-Bold",
+                fontSize=9.5,
                 leading=12,
                 textColor=colors.HexColor("#203330"),
             )
@@ -269,9 +271,9 @@ class DocumentService:
             ParagraphStyle(
                 name="tableValue",
                 parent=styles["BodyText"],
-                fontName="Times-Roman",
-                fontSize=9.4,
-                leading=12,
+                fontName="Helvetica",
+                fontSize=9.5,
+                leading=12.4,
                 textColor=colors.HexColor("#24343B"),
             )
         )
@@ -279,9 +281,9 @@ class DocumentService:
             ParagraphStyle(
                 name="evidenceTitle",
                 parent=styles["BodyText"],
-                fontName="Times-Bold",
+                fontName="Helvetica-Bold",
                 fontSize=10,
-                leading=12,
+                leading=12.4,
                 textColor=colors.HexColor("#182A28"),
                 spaceAfter=4,
             )
@@ -292,25 +294,25 @@ class DocumentService:
                 parent=styles["Normal"],
                 fontName="Helvetica",
                 fontSize=8.2,
-                leading=10.4,
-                textColor=colors.HexColor("#66757E"),
+                leading=10.2,
+                textColor=colors.HexColor("#586771"),
+            )
+        )
+        styles.add(
+            ParagraphStyle(
+                name="contractFootnoteTitle",
+                parent=styles["Normal"],
+                fontName="Helvetica-Bold",
+                fontSize=8.3,
+                leading=10,
+                textColor=colors.HexColor("#586771"),
+                spaceAfter=4,
             )
         )
         return styles
 
-    def _metadata_line(self, contract: Contract, signature) -> str:
-        metadata = " | ".join(
-            [
-                f"Identificador: {contract.id}",
-                f"Perfil: {self._role_label(signature.signer_role)}",
-                f"Assinante: {signature.signer_name}",
-                f"Data e hora: {format_display_datetime(signature.signed_at)}",
-            ]
-        )
-        return html.escape(metadata)
-
     def _data_table(self, rows: list[tuple[str, str | None]], width: float, styles) -> Table:
-        label_width = 4.3 * cm
+        label_width = 4.05 * cm
         data = [
             [
                 Paragraph(html.escape(label), styles["tableLabel"]),
@@ -322,12 +324,13 @@ class DocumentService:
         table.setStyle(
             TableStyle(
                 [
-                    ("BOX", (0, 0), (-1, -1), 0.55, colors.HexColor("#C9D2CF")),
-                    ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#DDE5E2")),
-                    ("BACKGROUND", (0, 0), (-1, -1), colors.white),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("TOPPADDING", (0, 0), (-1, -1), 7),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                    ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F0F6F3")),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#24333A")),
+                    ("BOX", (0, 0), (-1, -1), 0.55, colors.HexColor("#D8E5E0")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E5EEEA")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
                     ("LEFTPADDING", (0, 0), (-1, -1), 8),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ]
@@ -340,18 +343,18 @@ class DocumentService:
         signer_name = signature.signer_name or self._resolve_signer_display_name(signature.signer_role, patient, responsible)
 
         face_photo = self._image_for_pdf(signature.face_photo_path, width=4.8 * cm, height=6.3 * cm)
-        signature_image = self._image_for_pdf(signature.signature_image_path, width=7.6 * cm, height=2.6 * cm)
+        signature_image = self._image_for_pdf(signature.signature_image_path, width=7.4 * cm, height=2.7 * cm)
 
         photo_cell = [
             Paragraph("Foto de verificação", styles["evidenceTitle"]),
-            Spacer(1, 0.12 * cm),
+            Spacer(1, 0.1 * cm),
             face_photo,
         ]
         signature_cell = [
             Paragraph("Assinatura digital", styles["evidenceTitle"]),
-            Spacer(1, 0.12 * cm),
+            Spacer(1, 0.1 * cm),
             signature_image,
-            Spacer(1, 0.2 * cm),
+            Spacer(1, 0.18 * cm),
             Paragraph(html.escape(signer_name or "Não informado"), styles["tableLabel"]),
             Paragraph(html.escape(signer_label), styles["contractCaption"]),
             Paragraph(
@@ -360,18 +363,49 @@ class DocumentService:
             ),
         ]
 
-        left_width = 5.5 * cm
+        left_width = 5.6 * cm
         table = Table([[photo_cell, signature_cell]], colWidths=[left_width, width - left_width])
         table.setStyle(
             TableStyle(
                 [
-                    ("BOX", (0, 0), (-1, -1), 0.55, colors.HexColor("#C9D2CF")),
-                    ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#DDE5E2")),
+                    ("BOX", (0, 0), (-1, -1), 0.55, colors.HexColor("#D8E5E0")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E5EEEA")),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     ("TOPPADDING", (0, 0), (-1, -1), 9),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
                     ("LEFTPADDING", (0, 0), (-1, -1), 10),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ]
+            )
+        )
+        return table
+
+    def _metadata_footer_table(self, contract: Contract, signature, width: float, styles) -> Table:
+        rows = [
+            ("Identificador", contract.id),
+            ("Perfil de assinatura", self._role_label(signature.signer_role)),
+            ("Assinante", signature.signer_name),
+            ("Data e hora", format_display_datetime(signature.signed_at)),
+        ]
+        data = [
+            [
+                Paragraph(html.escape(label), styles["contractCaption"]),
+                Paragraph(html.escape(value or "Não informado"), styles["contractCaption"]),
+            ]
+            for label, value in rows
+        ]
+        table = Table(data, colWidths=[3.7 * cm, width - (3.7 * cm)])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FAFCFB")),
+                    ("BOX", (0, 0), (-1, -1), 0.45, colors.HexColor("#D8E5E0")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.2, colors.HexColor("#E5EEEA")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 7),
                 ]
             )
         )
