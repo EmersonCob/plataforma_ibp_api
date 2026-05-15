@@ -53,6 +53,23 @@ def test_resolve_signer_name_uses_selected_role() -> None:
     assert resolve_signer_name(snapshot, "responsavel") == "Responsavel Teste"
 
 
+def test_render_contract_text_uses_patient_when_responsible_is_missing() -> None:
+    client = Client(
+        full_name="Ana Beatriz",
+        cpf="123.456.789-10",
+        phone="(81) 99999-0000",
+    )
+
+    snapshot = build_contract_snapshot_from_client(client)
+    text = render_contract_text(snapshot)
+
+    assert snapshot["financial_responsible"] is None
+    assert "Ana Beatriz" in text
+    assert "123.456.789-10" in text
+    assert "(81) 99999-0000" in text
+    assert "Na ausência de um terceiro responsável informado" in text
+
+
 def test_build_client_contract_address_recomputes_when_fields_change() -> None:
     client = Client(
         address="Rua Antiga, 10, Centro - Cidade, MG / 30000-000",

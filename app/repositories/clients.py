@@ -23,16 +23,32 @@ class ClientRepository:
             count_statement = count_statement.where(Client.status == status)
 
         if search:
-            term = f"%{search.strip()}%"
-            condition = or_(
+            normalized_search = search.strip()
+            term = f"%{normalized_search}%"
+            digit_term = "".join(char for char in normalized_search if char.isdigit())
+            conditions = [
                 Client.full_name.ilike(term),
                 Client.email.ilike(term),
                 Client.cpf.ilike(term),
+                Client.phone.ilike(term),
                 Client.city.ilike(term),
                 Client.zip_code.ilike(term),
                 Client.financial_responsible_name.ilike(term),
                 Client.financial_responsible_cpf.ilike(term),
-            )
+                Client.financial_responsible_phone.ilike(term),
+            ]
+            if digit_term:
+                digit_like = f"%{digit_term}%"
+                conditions.extend(
+                    [
+                        func.regexp_replace(func.coalesce(Client.cpf, ""), r"\D", "", "g").ilike(digit_like),
+                        func.regexp_replace(func.coalesce(Client.phone, ""), r"\D", "", "g").ilike(digit_like),
+                        func.regexp_replace(func.coalesce(Client.zip_code, ""), r"\D", "", "g").ilike(digit_like),
+                        func.regexp_replace(func.coalesce(Client.financial_responsible_cpf, ""), r"\D", "", "g").ilike(digit_like),
+                        func.regexp_replace(func.coalesce(Client.financial_responsible_phone, ""), r"\D", "", "g").ilike(digit_like),
+                    ]
+                )
+            condition = or_(*conditions)
             statement = statement.where(condition)
             count_statement = count_statement.where(condition)
 

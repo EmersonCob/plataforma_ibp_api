@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.br_fields import normalize_cpf, normalize_phone
 from app.models.enums import ContractStatus
 from app.schemas.client import ClientRead
 
@@ -24,13 +25,23 @@ class ContractPatientSnapshot(BaseModel):
     phone: str | None = Field(default=None, max_length=40)
     address: str | None = Field(default=None, max_length=400)
 
-    @field_validator("name", "cpf", "phone", "address", mode="before")
+    @field_validator("name", "address", mode="before")
     @classmethod
     def strip_value(cls, value: str | None) -> str | None:
         if isinstance(value, str):
             cleaned = value.strip()
             return cleaned or None
         return value
+
+    @field_validator("cpf", mode="before")
+    @classmethod
+    def normalize_cpf_field(cls, value: str | None) -> str | None:
+        return normalize_cpf(value)
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def normalize_phone_field(cls, value: str | None) -> str | None:
+        return normalize_phone(value)
 
 
 class ContractResponsibleSnapshot(BaseModel):
@@ -38,13 +49,23 @@ class ContractResponsibleSnapshot(BaseModel):
     cpf: str | None = Field(default=None, max_length=14)
     phone: str | None = Field(default=None, max_length=40)
 
-    @field_validator("name", "cpf", "phone", mode="before")
+    @field_validator("name", mode="before")
     @classmethod
     def strip_value(cls, value: str | None) -> str | None:
         if isinstance(value, str):
             cleaned = value.strip()
             return cleaned or None
         return value
+
+    @field_validator("cpf", mode="before")
+    @classmethod
+    def normalize_cpf_field(cls, value: str | None) -> str | None:
+        return normalize_cpf(value)
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def normalize_phone_field(cls, value: str | None) -> str | None:
+        return normalize_phone(value)
 
 
 class ContractFormSnapshot(BaseModel):

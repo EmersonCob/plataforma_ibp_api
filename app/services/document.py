@@ -12,17 +12,21 @@ from reportlab.lib.units import cm
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy.orm import Session
 
+from app.core.br_fields import format_cpf, format_phone
 from app.core.datetime_utils import format_display_datetime
 from app.core.errors import AppError
 from app.models.contract import Contract
 from app.services.contract_rendering import (
     COMMUNICATION_PARAGRAPHS,
     CONSULTATION_CONDITIONS,
+    PAYMENT_RESPONSIBLE_SELF_NOTE,
     PAYMENT_RESPONSIBLE_SECTION_TITLE,
     RESPONSIBILITY_PARAGRAPH,
     SCIENCE_DECLARATION,
     SERVICE_NATURE_PARAGRAPHS,
     SIGNED_DOCUMENT_WATERMARK,
+    payment_responsible_uses_patient,
+    resolve_payment_responsible,
 )
 from app.services.storage import storage_service
 
@@ -69,7 +73,8 @@ class DocumentService:
 
         snapshot = contract.form_snapshot or {}
         patient = snapshot.get("patient") or {}
-        responsible = snapshot.get("financial_responsible") or {}
+        responsible = resolve_payment_responsible(snapshot)
+        responsible_uses_patient = payment_responsible_uses_patient(snapshot)
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -91,9 +96,9 @@ class DocumentService:
             self._data_table(
                 [
                     ("Nome", patient.get("name")),
-                    ("CPF", patient.get("cpf")),
+                    ("CPF", format_cpf(patient.get("cpf"))),
                     ("Data de nascimento", self._format_date(patient.get("birth_date"))),
-                    ("Telefone", patient.get("phone")),
+                    ("Telefone", format_phone(patient.get("phone"))),
                     ("Endereço", patient.get("address")),
                 ],
                 doc.width,
@@ -101,22 +106,23 @@ class DocumentService:
             ),
         ]
 
-        if any((responsible.get("name"), responsible.get("cpf"), responsible.get("phone"))):
-            story.extend(
-                [
-                    Spacer(1, 0.28 * cm),
-                    Paragraph(PAYMENT_RESPONSIBLE_SECTION_TITLE, styles["contractSection"]),
-                    self._data_table(
-                        [
-                            ("Nome", responsible.get("name")),
-                            ("CPF", responsible.get("cpf")),
-                            ("Telefone", responsible.get("phone")),
-                        ],
-                        doc.width,
-                        styles,
-                    ),
-                ]
-            )
+        story.extend(
+            [
+                Spacer(1, 0.28 * cm),
+                Paragraph(PAYMENT_RESPONSIBLE_SECTION_TITLE, styles["contractSection"]),
+                self._data_table(
+                    [
+                        ("Nome", responsible.get("name")),
+                        ("CPF", format_cpf(responsible.get("cpf"))),
+                        ("Telefone", format_phone(responsible.get("phone"))),
+                    ],
+                    doc.width,
+                    styles,
+                ),
+            ]
+        )
+        if responsible_uses_patient:
+            story.append(Paragraph(html.escape(PAYMENT_RESPONSIBLE_SELF_NOTE), styles["contractNote"]))
 
         story.extend(
             [
@@ -183,10 +189,10 @@ class DocumentService:
                 name="contractBrand",
                 parent=styles["Normal"],
                 fontName="Helvetica-Bold",
-                fontSize=11,
+                fontSize=13.2,
                 alignment=TA_CENTER,
                 textColor=colors.HexColor("#0F5B52"),
-                spaceAfter=4,
+                spaceAfter=6,
             )
         )
         styles.add(
@@ -235,6 +241,18 @@ class DocumentService:
                 alignment=TA_JUSTIFY,
                 textColor=colors.HexColor("#24333A"),
                 spaceAfter=3,
+            )
+        )
+        styles.add(
+            ParagraphStyle(
+                name="contractNote",
+                parent=styles["BodyText"],
+                fontName="Helvetica",
+                fontSize=8.9,
+                leading=11.8,
+                textColor=colors.HexColor("#66757E"),
+                spaceBefore=4,
+                spaceAfter=2,
             )
         )
         styles.add(

@@ -3,10 +3,15 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
+from app.core.br_fields import format_cpf, format_phone, format_zip_code
 from app.models.client import Client
 
 DEFAULT_CONTRACT_TITLE = "Termo de Responsabilidade e Contrato de Consulta"
 PAYMENT_RESPONSIBLE_SECTION_TITLE = "Responsável pelo pagamento"
+PAYMENT_RESPONSIBLE_SELF_NOTE = (
+    "Na ausência de um terceiro responsável informado, consideram-se os dados do próprio paciente "
+    "para fins contratuais e fiscais."
+)
 SIGNED_DOCUMENT_WATERMARK = "Documento assinado digitalmente"
 
 RESPONSIBILITY_PARAGRAPH = (
@@ -164,7 +169,8 @@ def normalize_contract_snapshot(snapshot: Any, *, client: Client) -> dict[str, A
 
 def render_contract_text(snapshot: dict[str, Any]) -> str:
     patient = snapshot.get("patient") or {}
-    responsible = snapshot.get("financial_responsible") or {}
+    responsible = resolve_payment_responsible(snapshot)
+    responsible_uses_patient = payment_responsible_uses_patient(snapshot)
 
     lines = [
         "TERMO DE RESPONSABILIDADE E CONTRATO DE CONSULTA",
@@ -172,15 +178,16 @@ def render_contract_text(snapshot: dict[str, Any]) -> str:
         "",
         "1. QUALIFICAÇÃO DO PACIENTE",
         f"Nome: {_display_value(patient.get('name'))}",
-        f"CPF: {_display_value(patient.get('cpf'))}",
+        f"CPF: {_display_cpf(patient.get('cpf'))}",
         f"Data de nascimento: {_display_date(patient.get('birth_date'))}",
-        f"Telefone: {_display_value(patient.get('phone'))}",
+        f"Telefone: {_display_phone(patient.get('phone'))}",
         f"Endereço: {_display_value(patient.get('address'))}",
         "",
         f"2. {PAYMENT_RESPONSIBLE_SECTION_TITLE.upper()}",
         f"Nome: {_display_value(responsible.get('name'))}",
-        f"CPF: {_display_value(responsible.get('cpf'))}",
-        f"Telefone: {_display_value(responsible.get('phone'))}",
+        f"CPF: {_display_cpf(responsible.get('cpf'))}",
+        f"Telefone: {_display_phone(responsible.get('phone'))}",
+        *([f"Observação: {PAYMENT_RESPONSIBLE_SELF_NOTE}"] if responsible_uses_patient else []),
         "",
         "3. TERMO DE RESPONSABILIDADE",
         RESPONSIBILITY_PARAGRAPH,
@@ -207,11 +214,34 @@ def build_client_contract_address(client: Client) -> str | None:
     if client.address_complement:
         first_line = ", ".join(filter(None, [first_line, _clean_optional(client.address_complement)]))
     second_line = " - ".join(filter(None, [_clean_optional(client.neighborhood), _clean_optional(client.city)]))
-    third_line = " / ".join(filter(None, [_clean_optional(client.state), _clean_optional(client.zip_code)]))
+    third_line = " / ".join(filter(None, [_clean_optional(client.state), format_zip_code(_clean_optional(client.zip_code))]))
     parts = [part for part in [first_line, second_line, third_line] if part]
     if parts:
         return ", ".join(parts)
     return _clean_optional(client.address)
+
+
+def resolve_payment_responsible(snapshot: dict[str, Any] | None) -> dict[str, Any]:
+    patient = (snapshot or {}).get("patient") or {}
+    responsible = (snapshot or {}).get("financial_responsible") or {}
+
+    if any(_clean_optional(responsible.get(field)) for field in ("name", "cpf", "phone")):
+        return {
+            "name": _clean_optional(responsible.get("name")),
+            "cpf": _clean_optional(responsible.get("cpf")),
+            "phone": _clean_optional(responsible.get("phone")),
+        }
+
+    return {
+        "name": _clean_optional(patient.get("name")),
+        "cpf": _clean_optional(patient.get("cpf")),
+        "phone": _clean_optional(patient.get("phone")),
+    }
+
+
+def payment_responsible_uses_patient(snapshot: dict[str, Any] | None) -> bool:
+    responsible = (snapshot or {}).get("financial_responsible") or {}
+    return not any(_clean_optional(responsible.get(field)) for field in ("name", "cpf", "phone"))
 
 
 def resolve_signer_name(snapshot: dict[str, Any] | None, signer_role: str) -> str | None:
@@ -225,6 +255,16 @@ def resolve_signer_name(snapshot: dict[str, Any] | None, signer_role: str) -> st
 def _display_value(value: Any) -> str:
     cleaned = _clean_optional(value)
     return cleaned or "Não informado"
+
+
+def _display_cpf(value: Any) -> str:
+    formatted = format_cpf(_clean_optional(value))
+    return formatted or "Não informado"
+
+
+def _display_phone(value: Any) -> str:
+    formatted = format_phone(_clean_optional(value))
+    return formatted or "Não informado"
 
 
 def _display_date(value: Any) -> str:

@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.core.br_fields import normalize_cpf, normalize_phone, normalize_zip_code
 from app.models.enums import ClientStatus
 
 
@@ -51,6 +52,21 @@ class ClientBase(BaseModel):
     @classmethod
     def normalize_state(cls, value: str | None) -> str | None:
         return value.upper() if value else value
+
+    @field_validator("cpf", "financial_responsible_cpf")
+    @classmethod
+    def normalize_document_fields(cls, value: str | None) -> str | None:
+        return normalize_cpf(value)
+
+    @field_validator("phone", "financial_responsible_phone")
+    @classmethod
+    def normalize_phone_fields(cls, value: str | None) -> str | None:
+        return normalize_phone(value)
+
+    @field_validator("zip_code")
+    @classmethod
+    def normalize_zip_code_field(cls, value: str | None) -> str | None:
+        return normalize_zip_code(value)
 
 
 class ClientCreate(ClientBase):
@@ -103,6 +119,21 @@ class ClientUpdate(BaseModel):
     @classmethod
     def normalize_state(cls, value: str | None) -> str | None:
         return value.upper() if value else value
+
+    @field_validator("cpf", "financial_responsible_cpf")
+    @classmethod
+    def normalize_document_fields(cls, value: str | None) -> str | None:
+        return normalize_cpf(value)
+
+    @field_validator("phone", "financial_responsible_phone")
+    @classmethod
+    def normalize_phone_fields(cls, value: str | None) -> str | None:
+        return normalize_phone(value)
+
+    @field_validator("zip_code")
+    @classmethod
+    def normalize_zip_code_field(cls, value: str | None) -> str | None:
+        return normalize_zip_code(value)
 
 
 class ClientStatusUpdate(BaseModel):
