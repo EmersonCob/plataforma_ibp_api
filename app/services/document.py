@@ -18,9 +18,11 @@ from app.models.contract import Contract
 from app.services.contract_rendering import (
     COMMUNICATION_PARAGRAPHS,
     CONSULTATION_CONDITIONS,
+    PAYMENT_RESPONSIBLE_SECTION_TITLE,
     RESPONSIBILITY_PARAGRAPH,
     SCIENCE_DECLARATION,
     SERVICE_NATURE_PARAGRAPHS,
+    SIGNED_DOCUMENT_WATERMARK,
 )
 from app.services.storage import storage_service
 
@@ -38,7 +40,7 @@ class DocumentService:
 
         pdf_bytes = self._render_pdf(contract)
         pdf_hash = hashlib.sha256(pdf_bytes).hexdigest()
-        object_name = f"contracts/{contract.id}/signed/final-v{contract.current_version}.pdf"
+        object_name = f"contracts/{contract.id}/signed/documento-assinado.pdf"
         storage_service.upload_bytes(object_name, pdf_bytes, "application/pdf")
 
         contract.signed_document_path = object_name
@@ -84,7 +86,6 @@ class DocumentService:
         story = [
             Paragraph("IBP - Instituto Brasileiro de Psiquiatria", styles["contractBrand"]),
             Paragraph(html.escape(contract.title), styles["contractTitle"]),
-            Paragraph("Documento final assinado digitalmente", styles["contractSubtitle"]),
             Spacer(1, 0.38 * cm),
             Paragraph("Dados do paciente", styles["contractSection"]),
             self._data_table(
@@ -104,7 +105,7 @@ class DocumentService:
             story.extend(
                 [
                     Spacer(1, 0.28 * cm),
-                    Paragraph("Responsável financeiro", styles["contractSection"]),
+                    Paragraph(PAYMENT_RESPONSIBLE_SECTION_TITLE, styles["contractSection"]),
                     self._data_table(
                         [
                             ("Nome", responsible.get("name")),
@@ -153,8 +154,12 @@ class DocumentService:
                 Paragraph("Declaração de ciência e concordância", styles["contractSection"]),
                 Paragraph(html.escape(SCIENCE_DECLARATION), styles["contractBody"]),
                 Paragraph(
-                    f"Assinatura eletrônica registrada em {html.escape(format_display_datetime(signature.signed_at))} (horário de Brasília).",
+                    f"Data e hora do aceite: {html.escape(format_display_datetime(signature.signed_at))} (horário de Brasília).",
                     styles["contractBodyStrong"],
+                ),
+                Paragraph(
+                    "Assinatura eletrônica registrada no documento final assinado.",
+                    styles["contractBody"],
                 ),
                 Spacer(1, 0.22 * cm),
                 Paragraph("Evidências da assinatura", styles["contractSection"]),
@@ -168,7 +173,7 @@ class DocumentService:
             ]
         )
 
-        doc.build(story)
+        doc.build(story, onFirstPage=self._draw_signed_watermark, onLaterPages=self._draw_signed_watermark)
         return buffer.getvalue()
 
     def _styles(self):
@@ -193,17 +198,6 @@ class DocumentService:
                 leading=21,
                 alignment=TA_CENTER,
                 textColor=colors.HexColor("#1C2B25"),
-                spaceAfter=2,
-            )
-        )
-        styles.add(
-            ParagraphStyle(
-                name="contractSubtitle",
-                parent=styles["Normal"],
-                fontName="Helvetica",
-                fontSize=10,
-                alignment=TA_CENTER,
-                textColor=colors.HexColor("#586771"),
                 spaceAfter=2,
             )
         )
@@ -461,6 +455,18 @@ class DocumentService:
         if role == "responsavel":
             return responsible.get("name")
         return patient.get("name")
+
+    @staticmethod
+    def _draw_signed_watermark(canvas, doc) -> None:
+        canvas.saveState()
+        canvas.setFont("Helvetica-Bold", 11)
+        canvas.setFillColor(colors.HexColor("#9AA9A2"))
+        text = SIGNED_DOCUMENT_WATERMARK.upper()
+        text_width = canvas.stringWidth(text, "Helvetica-Bold", 11)
+        x = (A4[0] - text_width) / 2
+        y = A4[1] - (0.95 * cm)
+        canvas.drawString(x, y, text)
+        canvas.restoreState()
 
 
 document_service = DocumentService()

@@ -6,11 +6,13 @@ from typing import Any
 from app.models.client import Client
 
 DEFAULT_CONTRACT_TITLE = "Termo de Responsabilidade e Contrato de Consulta"
+PAYMENT_RESPONSIBLE_SECTION_TITLE = "Responsável pelo pagamento"
+SIGNED_DOCUMENT_WATERMARK = "Documento assinado digitalmente"
 
 RESPONSIBILITY_PARAGRAPH = (
     "Para cumprimento das exigências da Receita Federal (DMED), é obrigatória a apresentação dos "
-    "dados do paciente e do responsável financeiro, quando houver. O IBP garante que tais "
-    "informações serão utilizadas exclusivamente para fins fiscais e para emissão de nota."
+    "dados do paciente e do responsável financeiro. O IBP garante que tais informações serão "
+    "utilizadas exclusivamente para fins fiscais e emissão de nota."
 )
 
 CONSULTATION_CONDITIONS = [
@@ -23,20 +25,20 @@ CONSULTATION_CONDITIONS = [
 SERVICE_NATURE_PARAGRAPHS = [
     "A clínica não dispõe de estrutura para atendimentos imediatos ou situações agudas.",
     (
-        "Em casos de urgência ou emergência, como agravamento súbito, risco físico ou psíquico, "
-        "ideação suicida ou agitação intensa, o paciente deve procurar imediatamente UPA, Hospital "
-        "ou SAMU (192)."
+        "Em casos de urgência ou emergência (como agravamento súbito, risco físico ou psíquico, "
+        "ideação suicida ou agitação intensa), o paciente deve procurar imediatamente: UPA, "
+        "Hospital ou SAMU (192)."
     ),
 ]
 
 COMMUNICATION_PARAGRAPHS = [
     (
         "A clínica disponibiliza canais de comunicação, como aplicativos de mensagens (ex.: "
-        "WhatsApp), com o objetivo de oferecer acolhimento, orientações gerais, apoio em dúvidas "
-        "pontuais e tratar de questões administrativas."
+        "WhatsApp), com o objetivo de oferecer acolhimento, orientações gerais e apoio em dúvidas "
+        "pontuais, além de tratar de questões administrativas."
     ),
     (
-        "Prezamos por um atendimento atencioso e respeitoso; porém, devido à alta demanda, as "
+        "Prezamos por um atendimento atencioso e respeitoso, porém, devido à alta demanda, as "
         "respostas podem não ser imediatas, podendo ocorrer tempo de espera para retorno."
     ),
     (
@@ -52,8 +54,7 @@ COMMUNICATION_PARAGRAPHS = [
 ]
 
 SCIENCE_DECLARATION = (
-    "Declaro que recebi as informações de forma clara, compreendi o conteúdo deste contrato e estou "
-    "de acordo com os termos apresentados."
+    "Declaro que recebi as informações de forma clara e estou de acordo com os termos deste contrato."
 )
 
 DEFAULT_TEMPLATE_TEXT = """TERMO DE RESPONSABILIDADE E CONTRATO DE CONSULTA
@@ -66,15 +67,15 @@ Data de nascimento: ____________________________
 Telefone: ______________________________________
 Endereço: ______________________________________
 
-2. RESPONSÁVEL FINANCEIRO, QUANDO HOUVER
+2. RESPONSÁVEL PELO PAGAMENTO
 Nome: __________________________________________
 CPF: ___________________________________________
 Telefone: ______________________________________
 
 3. TERMO DE RESPONSABILIDADE
 Para cumprimento das exigências da Receita Federal (DMED), é obrigatória a apresentação dos dados
-do paciente e do responsável financeiro, quando houver. O IBP garante que tais informações serão
-utilizadas exclusivamente para fins fiscais e para emissão de nota.
+do paciente e do responsável financeiro. O IBP garante que tais informações serão utilizadas
+exclusivamente para fins fiscais e emissão de nota.
 
 4. CONDIÇÕES DA CONSULTA PSIQUIÁTRICA
 - Os atendimentos são realizados em regime ambulatorial, com acompanhamento programado.
@@ -84,14 +85,14 @@ utilizadas exclusivamente para fins fiscais e para emissão de nota.
 
 5. NATUREZA DO SERVIÇO
 A clínica não dispõe de estrutura para atendimentos imediatos ou situações agudas.
-Em casos de urgência ou emergência, como agravamento súbito, risco físico ou psíquico, ideação
-suicida ou agitação intensa, o paciente deve procurar imediatamente UPA, Hospital ou SAMU (192).
+Em casos de urgência ou emergência (como agravamento súbito, risco físico ou psíquico, ideação
+suicida ou agitação intensa), o paciente deve procurar imediatamente: UPA, Hospital ou SAMU (192).
 
 6. COMUNICAÇÃO
 A clínica disponibiliza canais de comunicação, como aplicativos de mensagens (ex.: WhatsApp), com
-o objetivo de oferecer acolhimento, orientações gerais, apoio em dúvidas pontuais e tratar de
-questões administrativas.
-Prezamos por um atendimento atencioso e respeitoso; porém, devido à alta demanda, as respostas
+o objetivo de oferecer acolhimento, orientações gerais e apoio em dúvidas pontuais, além de tratar
+de questões administrativas.
+Prezamos por um atendimento atencioso e respeitoso, porém, devido à alta demanda, as respostas
 podem não ser imediatas, podendo ocorrer tempo de espera para retorno.
 Esse canal não substitui a consulta médica, sendo fundamental o agendamento de atendimento sempre
 que houver necessidade de avaliação clínica mais detalhada.
@@ -100,9 +101,8 @@ quadro, sofrimento intenso ou qualquer situação que exija avaliação imediata
 paciente procure diretamente um serviço de urgência/emergência para um cuidado mais rápido e seguro.
 
 7. DECLARAÇÃO DE CIÊNCIA E CONCORDÂNCIA
-Declaro que recebi as informações de forma clara, compreendi o conteúdo deste contrato e estou de
-acordo com os termos apresentados.
-Local e data: __________________________________
+Declaro que recebi as informações de forma clara e estou de acordo com os termos deste contrato.
+Data e hora do aceite: _________________________
 Assinatura eletrônica: _________________________
 """
 
@@ -177,7 +177,7 @@ def render_contract_text(snapshot: dict[str, Any]) -> str:
         f"Telefone: {_display_value(patient.get('phone'))}",
         f"Endereço: {_display_value(patient.get('address'))}",
         "",
-        "2. RESPONSÁVEL FINANCEIRO, QUANDO HOUVER",
+        f"2. {PAYMENT_RESPONSIBLE_SECTION_TITLE.upper()}",
         f"Nome: {_display_value(responsible.get('name'))}",
         f"CPF: {_display_value(responsible.get('cpf'))}",
         f"Telefone: {_display_value(responsible.get('phone'))}",
@@ -196,8 +196,8 @@ def render_contract_text(snapshot: dict[str, Any]) -> str:
         "",
         "7. DECLARAÇÃO DE CIÊNCIA E CONCORDÂNCIA",
         SCIENCE_DECLARATION,
-        "Local e data: preenchimento automático no momento da assinatura digital.",
-        "Assinatura eletrônica: registrada na versão final do documento.",
+        "Data e hora do aceite: preenchimento automático no momento da assinatura digital.",
+        "Assinatura eletrônica: registrada no documento final assinado.",
     ]
     return "\n".join(lines)
 
