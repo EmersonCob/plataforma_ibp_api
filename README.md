@@ -4,7 +4,7 @@ API principal da plataforma para pacientes, contratos, assinatura pública, audi
 
 ## Escopo
 
-Este diretório concentra a aplicação administrativa principal da plataforma, referenciada no projeto como `plataforma_ibp_api`.
+Este diretorio concentra a aplicacao administrativa principal da plataforma, referenciada no projeto como `plataforma_ibp_api`.
 
 ## Stack
 
