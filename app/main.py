@@ -24,9 +24,9 @@ configure_logging()
 app = FastAPI(
     title=settings.project_name,
     version="1.0.0",
-    openapi_url=f"{settings.api_v1_prefix}/openapi.json",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    openapi_url=None if settings.is_production else f"{settings.api_v1_prefix}/openapi.json",
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
     lifespan=lifespan,
 )
 
