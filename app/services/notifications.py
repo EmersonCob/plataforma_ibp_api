@@ -4,6 +4,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.errors import AppError
 from app.models.contract import Contract
 from app.models.enums import NotificationChannel, NotificationStatus
 from app.models.notification import NotificationEvent
@@ -134,7 +135,11 @@ class NotificationGateway:
             event.provider = self.provider.name
             event.error_message = "Nao foi possivel encaminhar a mensagem para a API de canais."
             db.commit()
-            raise exc
+            raise AppError(
+                "Nao foi possivel entregar a mensagem no canal configurado.",
+                502,
+                "notification_delivery_failed",
+            ) from exc
 
         event.status = NotificationStatus.sent if result.get("provider") == "channels_api" else NotificationStatus.pending
         event.provider = result.get("provider") or self.provider.name
