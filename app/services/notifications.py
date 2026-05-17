@@ -78,9 +78,14 @@ class NotificationGateway:
         if contract.generated_link_token:
             sign_url = f"{settings.public_sign_url_base.rstrip('/')}/{contract.generated_link_token}"
 
-        default_message = message or "Ola, segue seu link para assinatura."
+        first_name = (contract.client.full_name or "").strip().split(" ")[0]
+        greeting_name = f", {first_name}" if first_name else ""
+        default_message = message or (
+            f"Ola{greeting_name}. Tudo bem?\n\n"
+            "Segue o seu link para assinatura do documento IBP:"
+        )
         if sign_url and sign_url not in default_message:
-            default_message = f"{default_message} {sign_url}".strip()
+            default_message = f"{default_message}\n{sign_url}".strip()
 
         return {
             "event": event_type,

@@ -54,6 +54,9 @@ class UserService:
             password_hash=hash_password(payload.password),
             role=role,
             is_active=payload.is_active,
+            can_access_contracts=payload.can_access_contracts,
+            can_access_attendance=payload.can_access_attendance,
+            can_access_prontuario=payload.can_access_prontuario,
         )
         db.add(user)
         db.flush()
@@ -97,6 +100,15 @@ class UserService:
             if user.id == actor.id and updates["is_active"] is False:
                 raise AppError("Você não pode desativar o próprio acesso.", 409, "self_deactivation_not_allowed")
             user.is_active = updates["is_active"]
+
+        if "can_access_contracts" in updates and updates["can_access_contracts"] is not None:
+            user.can_access_contracts = updates["can_access_contracts"]
+
+        if "can_access_attendance" in updates and updates["can_access_attendance"] is not None:
+            user.can_access_attendance = updates["can_access_attendance"]
+
+        if "can_access_prontuario" in updates and updates["can_access_prontuario"] is not None:
+            user.can_access_prontuario = updates["can_access_prontuario"]
 
         if updates.get("password"):
             user.password_hash = hash_password(updates["password"])

@@ -67,4 +67,7 @@ def me(user: User = Depends(get_current_user)) -> MeResponse:
         email=user.email,
         role=public_role_value(user.role),
         role_level=role_level(user.role),
+        can_access_contracts=user.can_access_contracts,
+        can_access_attendance=user.can_access_attendance,
+        can_access_prontuario=user.can_access_prontuario,
     )

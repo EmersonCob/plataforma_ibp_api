@@ -11,6 +11,9 @@ class UserBase(BaseModel):
     email: EmailStr
     role: UserRole = UserRole.usuario
     is_active: bool = True
+    can_access_contracts: bool = True
+    can_access_attendance: bool = True
+    can_access_prontuario: bool = True
 
     @field_validator("role")
     @classmethod
@@ -27,6 +30,9 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     role: UserRole | None = None
     is_active: bool | None = None
+    can_access_contracts: bool | None = None
+    can_access_attendance: bool | None = None
+    can_access_prontuario: bool | None = None
     password: str | None = Field(default=None, min_length=12, max_length=128)
 
     @field_validator("role")

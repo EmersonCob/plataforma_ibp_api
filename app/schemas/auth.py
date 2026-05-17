@@ -22,6 +22,9 @@ class MeResponse(BaseModel):
     email: EmailStr
     role: str
     role_level: int
+    can_access_contracts: bool
+    can_access_attendance: bool
+    can_access_prontuario: bool
 
 
 class PasswordResetRequest(BaseModel):
