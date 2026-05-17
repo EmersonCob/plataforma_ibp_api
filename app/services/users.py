@@ -12,6 +12,15 @@ from app.services.email import email_service
 
 
 class UserService:
+    def directory(self, db: Session, *, search: str | None, limit: int) -> list[User]:
+        statement = select(User).where(User.is_active.is_(True)).order_by(User.name.asc())
+
+        if search:
+            term = f"%{search.strip()}%"
+            statement = statement.where(or_(User.name.ilike(term), User.email.ilike(term)))
+
+        return list(db.scalars(statement.limit(limit)).all())
+
     def list(self, db: Session, *, search: str | None, page: int, size: int) -> tuple[list[User], int]:
         statement = select(User).order_by(User.created_at.desc())
         count_statement = select(func.count(User.id))

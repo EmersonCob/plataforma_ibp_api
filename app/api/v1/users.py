@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import require_manager
+from app.api.deps import require_manager, require_user
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserListResponse, UserRead, UserStatusUpdate, UserUpdate
+from app.schemas.user import UserCreate, UserDirectoryEntry, UserListResponse, UserRead, UserStatusUpdate, UserUpdate
 from app.services.users import user_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -20,6 +20,16 @@ def list_users(
 ) -> UserListResponse:
     items, total = user_service.list(db, search=search, page=page, size=size)
     return UserListResponse(items=items, total=total, page=page, size=size)
+
+
+@router.get("/directory", response_model=list[UserDirectoryEntry])
+def list_user_directory(
+    search: str | None = None,
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_user),
+) -> list[UserDirectoryEntry]:
+    return user_service.directory(db, search=search, limit=limit)
 
 
 @router.post("", response_model=UserRead, status_code=201)

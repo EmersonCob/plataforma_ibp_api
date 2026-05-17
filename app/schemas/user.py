@@ -59,3 +59,18 @@ class UserListResponse(BaseModel):
     total: int
     page: int
     size: int
+
+
+class UserDirectoryEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    email: EmailStr
+    role: UserRole
+    is_active: bool
+
+    @computed_field
+    @property
+    def role_level(self) -> int:
+        return role_level(self.role)
