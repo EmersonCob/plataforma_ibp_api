@@ -14,12 +14,25 @@ def parse_rate_limit(limit: str) -> tuple[int, int]:
     return int(amount), windows.get(period, 60)
 
 
+def get_client_ip(request: Request) -> str:
+    if settings.trust_proxy_headers:
+        real_ip = request.headers.get("x-real-ip", "").strip()
+        if real_ip:
+            return real_ip
+
+        forwarded = request.headers.get("x-forwarded-for", "")
+        forwarded_ip = forwarded.split(",")[0].strip()
+        if forwarded_ip:
+            return forwarded_ip
+
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limiter(limit: str) -> Callable:
     amount, window_seconds = parse_rate_limit(limit)
 
     async def dependency(request: Request, redis: Redis = Depends(get_redis)) -> None:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        client_ip = forwarded.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+        client_ip = get_client_ip(request)
         bucket = int(time.time() // window_seconds)
         key = f"rate:{request.url.path}:{client_ip}:{bucket}"
         count = await redis.incr(key)

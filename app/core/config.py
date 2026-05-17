@@ -41,16 +41,19 @@ class Settings(BaseSettings):
     password_reset_token_expire_minutes: int = 60
     frontend_app_url: str = "https://ibp-web-qa.jbtechinnova.com"
     display_timezone: str = "America/Sao_Paulo"
+    trust_proxy_headers: bool = False
 
     smtp_host: str | None = None
     smtp_port: int = 587
     smtp_username: str | None = None
     smtp_password: str | None = None
     smtp_from_email: EmailStr | None = None
-    smtp_from_name: str = "IBP Saúde Mental"
+    smtp_from_name: str = "IBP Saude Mental"
     smtp_use_tls: bool = True
     smtp_use_ssl: bool = False
     smtp_timeout_seconds: int = 10
+    channels_api_base_url: str | None = None
+    channels_api_internal_token: str | None = None
 
     initial_admin_name: str | None = None
     initial_admin_email: EmailStr | None = None
@@ -65,6 +68,8 @@ class Settings(BaseSettings):
         "smtp_username",
         "smtp_password",
         "smtp_from_email",
+        "channels_api_base_url",
+        "channels_api_internal_token",
         mode="before",
     )
     @classmethod

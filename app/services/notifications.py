@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -16,12 +17,8 @@ class BaseNotificationProvider(ABC):
         raise NotImplementedError
 
 
-class WhatsAppProviderInterface(BaseNotificationProvider):
-    pass
-
-
-class InternalNotificationProvider(WhatsAppProviderInterface):
-    """No external provider is called now; the event is only recorded for future dispatch."""
+class InternalNotificationProvider(BaseNotificationProvider):
+    """Fallback local recorder when the channels API is not configured."""
 
     name = "internal_event"
 
@@ -29,17 +26,65 @@ class InternalNotificationProvider(WhatsAppProviderInterface):
         return {"queued": True, "provider": self.name, "external_id": None, "payload": payload}
 
 
+class ChannelsApiNotificationProvider(BaseNotificationProvider):
+    name = "channels_api"
+
+    async def send(self, payload: dict) -> dict:
+        if not settings.channels_api_base_url or not settings.channels_api_internal_token:
+            return await InternalNotificationProvider().send(payload)
+
+        contact = payload.get("client") or {}
+        channel_value = payload.get("channel") or NotificationChannel.whatsapp.value
+        channel_type = "whatsapp" if channel_value == NotificationChannel.whatsapp.value else "webchat"
+        outbound_message = payload.get("message") or "Ola, segue sua comunicacao."
+
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.post(
+                f"{settings.channels_api_base_url.rstrip('/')}/internal/messages/send",
+                headers={"X-Internal-Token": settings.channels_api_internal_token},
+                json={
+                    "channel_type": channel_type,
+                    "contact_name": contact.get("name"),
+                    "contact_phone": contact.get("phone"),
+                    "contact_email": contact.get("email"),
+                    "content": outbound_message,
+                    "external_reference": payload.get("event"),
+                    "metadata": payload,
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        return {
+            "queued": True,
+            "provider": self.name,
+            "external_id": data.get("id"),
+            "payload": payload,
+        }
+
+
 class NotificationGateway:
     def __init__(self, provider: BaseNotificationProvider | None = None) -> None:
-        self.provider = provider or InternalNotificationProvider()
+        self.provider = provider or ChannelsApiNotificationProvider()
 
-    def build_contract_payload(self, contract: Contract, event_type: str, message: str | None = None) -> dict:
+    def build_contract_payload(
+        self,
+        contract: Contract,
+        event_type: str,
+        channel: NotificationChannel,
+        message: str | None = None,
+    ) -> dict:
         sign_url = None
         if contract.generated_link_token:
             sign_url = f"{settings.public_sign_url_base.rstrip('/')}/{contract.generated_link_token}"
 
+        default_message = message or "Ola, segue seu link para assinatura."
+        if sign_url and sign_url not in default_message:
+            default_message = f"{default_message} {sign_url}".strip()
+
         return {
             "event": event_type,
+            "channel": channel.value,
             "client": {
                 "id": contract.client.id,
                 "name": contract.client.full_name,
@@ -52,7 +97,7 @@ class NotificationGateway:
                 "status": contract.status.value,
                 "sign_url": sign_url,
             },
-            "message": message or "Ola, segue seu link para assinatura.",
+            "message": default_message,
         }
 
     async def trigger_contract_event(
@@ -64,7 +109,7 @@ class NotificationGateway:
         channel: NotificationChannel = NotificationChannel.whatsapp,
         message: str | None = None,
     ) -> NotificationEvent:
-        payload = self.build_contract_payload(contract, event_type, message)
+        payload = self.build_contract_payload(contract, event_type, channel, message)
         event = NotificationEvent(
             contract_id=contract.id,
             client_id=contract.client_id,
@@ -77,8 +122,16 @@ class NotificationGateway:
         db.add(event)
         db.flush()
 
-        result = await self.provider.send(payload)
-        event.status = NotificationStatus.pending
+        try:
+            result = await self.provider.send(payload)
+        except httpx.HTTPError as exc:
+            event.status = NotificationStatus.failed
+            event.provider = self.provider.name
+            event.error_message = "Nao foi possivel encaminhar a mensagem para a API de canais."
+            db.commit()
+            raise exc
+
+        event.status = NotificationStatus.sent if result.get("provider") == "channels_api" else NotificationStatus.pending
         event.provider = result.get("provider") or self.provider.name
         event.external_id = result.get("external_id")
 

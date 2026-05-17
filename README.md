@@ -1,58 +1,99 @@
 # Plataforma IBP API
 
-API principal da plataforma para pacientes, contratos, assinatura pública, auditoria, notificações e prontuário.
+API principal da plataforma.
 
-## Escopo
+## Responsabilidades
 
-Este diretorio concentra a aplicacao administrativa principal da plataforma, referenciada no projeto como `plataforma_ibp_api`.
+Esta aplicacao continua sendo dona de:
 
-## Stack
+- autenticacao e login
+- refresh token
+- usuarios
+- permissoes
+- pacientes
+- contratos
+- assinaturas
+- documentos assinados
+- auditoria principal
+- prontuario
 
-- Python
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Pydantic
-- Redis
-- MinIO/S3 compatível para fotos, assinaturas e PDFs
-- JWT
-- ReportLab para PDF
+## Fora do escopo desta API
+
+Nao e mais desejavel concentrar aqui detalhes internos de canais de comunicacao, como:
+
+- provedores de WhatsApp
+- webchat publico
+- webhooks de canais
+- n8n
+- fila de atendimento humano
+- conversas e mensagens da Central de Atendimento
+
+Esse escopo foi movido para `plataforma_ibp_api_canais`.
+
+## Relacao com a API de canais
+
+O dominio de contratos continua aqui.
+
+Quando um evento de contrato precisar gerar mensagem externa, esta API pode:
+
+1. montar o payload do dominio de contrato
+2. registrar o evento local de notificacao
+3. encaminhar o outbound para `plataforma_ibp_api_canais` via endpoint interno
+
+Assim, a API principal nao precisa conhecer detalhes de WhatsApp Official, Evolution ou Z-API.
+
+## Modulos principais
+
+- `auth`
+- `users`
+- `clients`
+- `contracts`
+- `public_signatures`
+- `notifications`
+- `prontuario`
+
+## Prontuario
+
+O CRUD de prontuario continua disponivel no backend, mas a interface de prontuario foi mantida fora desta entrega.
+
+O prontuario deve ser tratado como a terceira frente da plataforma, separada de:
+
+1. Contratos e Pacientes
+2. Central de Atendimento
+
+## Variaveis de ambiente
+
+Exemplo em `.env.example`.
+
+Variaveis relevantes desta etapa:
+
+- `CHANNELS_API_BASE_URL`
+- `CHANNELS_API_INTERNAL_TOKEN`
+- `TRUST_PROXY_HEADERS`
+
+Referencia QA atual para `CHANNELS_API_BASE_URL`:
+
+- `https://ibp-api-canais-qa.jbtechinnova.com/api/v1`
 
 ## Como rodar
-
-1. Crie e ative um ambiente virtual Python.
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-```
-
-2. Instale as dependências.
-
-```bash
 pip install -r requirements.txt
-```
-
-3. Copie o arquivo de ambiente e ajuste as variáveis.
-
-```bash
 copy .env.example .env
-```
-
-4. Inicie a API.
-
-```bash
 uvicorn app.main:app --reload
 ```
 
-## Módulos principais
+## Validacao
 
-- `clients`: cadastro, foto, status e exclusão controlada de pacientes.
-- `contracts`: geração, versionamento e assinatura de contratos.
-- `public_signatures`: fluxo público de assinatura com foto e evidências.
-- `prontuario`: histórico inicial de atendimentos vinculado ao paciente e ao usuário autor.
-- `notifications`: registro de gatilhos e integrações futuras.
+```bash
+python -m pytest tests -q
+python -m compileall app
+```
 
-## Observação
+## Observacoes de seguranca
 
-Como o projeto recria a estrutura do banco a partir dos modelos, mudanças estruturais recentes como `photo_path` em pacientes e `prontuario_entries` exigem recriação das tabelas quando o ambiente ainda estiver usando a estrutura anterior.
+- `TRUST_PROXY_HEADERS=false` por padrao. So habilite atras de proxy confiavel.
+- credenciais reais nao devem ficar em `.env` versionado
+- a notificacao de contrato continua registrando evento local, mas o envio para canais externos passa a depender da API de canais quando configurada
