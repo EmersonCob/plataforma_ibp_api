@@ -36,7 +36,7 @@ def test_jwt_contains_subject_and_role() -> None:
 def test_user_role_levels_and_legacy_admin_normalization() -> None:
     assert role_level(UserRole.usuario) == 1
     assert role_level(UserRole.gerente) == 2
-    assert role_level(UserRole.adm) == 3
-    assert role_level(UserRole.admin) == 3
+    assert role_level(UserRole.adm) == 5
+    assert role_level(UserRole.admin) == 5
     assert normalize_role(UserRole.admin) == UserRole.adm
     assert public_role_value(UserRole.admin) == "adm"

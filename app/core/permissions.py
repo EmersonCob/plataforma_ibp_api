@@ -3,8 +3,8 @@ from app.models.enums import UserRole
 ROLE_LEVELS: dict[UserRole, int] = {
     UserRole.usuario: 1,
     UserRole.gerente: 2,
-    UserRole.adm: 3,
-    UserRole.admin: 3,
+    UserRole.adm: 5,
+    UserRole.admin: 5,
 }
 
 

@@ -30,7 +30,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
 
 
 def require_admin(user: User = Depends(get_current_user)) -> User:
-    if role_level(user.role) < 3:
+    if role_level(user.role) < 5:
         raise HTTPException(status_code=403, detail="Permissão insuficiente")
     return user
 

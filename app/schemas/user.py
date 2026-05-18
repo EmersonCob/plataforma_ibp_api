@@ -43,6 +43,12 @@ class UserUpdate(BaseModel):
         return value
 
 
+class UserProfileUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=3, max_length=180)
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=12, max_length=128)
+
+
 class UserStatusUpdate(BaseModel):
     is_active: bool
 
